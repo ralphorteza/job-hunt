@@ -22,6 +22,30 @@ SKILLS = {
         "node.js": 2
 }
 
+TARGET_SKILLS = [
+        "c++",
+        "linux",
+        "stm32",
+        "microcontroller",
+        "spi",
+        "i2c",
+        "uart",
+        "rtos",
+        "real-time",
+        "python",
+        "foc",
+        "pid",
+        "bldc",
+        "pmsm",
+]
+
+
+def find_missing_skills(description):
+    text = description.lower()
+    return [skill
+            for skill in TARGET_SKILLS
+            if skill not in text
+    ]
 def score_job(description):
     text = description.lower()
     score = 0
@@ -92,6 +116,15 @@ if __name__ == "__main__":
     raw_score, matches = score_job(description)
     normalize_score = normalize(raw_score)
     resume = choose_resume(description)
+    missing = find_missing_skills(description)
+
+    print("\nMatched skills:")
+    for skill in matches:
+        print(f"- {skill}")
+
+    print("\nMissing skills:")
+    for skill in missing:
+        print(f"- {skill}")
 
     print(f"Raw score: {raw_score}")
     print(f"Match score: {normalize_score}/10")
