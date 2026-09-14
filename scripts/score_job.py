@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 
 SKILLS = {
         "c++": 3,
@@ -75,9 +76,18 @@ def choose_resume(description):
     return "swe"
 
 if __name__ == "__main__":
-    description = """
+    '''    description = """
     We are looking for an embedded firmware engineer experienced with stm32, c++, spi, i2c, linux, and real-time systems.
     """
+    '''
+    if len(sys.argv) != 2:
+        print("Usage: python score_job.py <job_description_file>")
+        sys.exit(1)
+    
+    filename = sys.argv[1]
+
+    with open(filename, "r", encoding="utf-8") as file:
+        description = file.read()
 
     raw_score, matches = score_job(description)
     normalize_score = normalize(raw_score)

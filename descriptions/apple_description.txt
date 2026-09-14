@@ -1,0 +1,53 @@
+ Embedded Firmware Engineer (Embedded Systems)
+
+Summary:
+This role focuses on low-level embedded firmware development tightly coupled with hardware. The ideal candidate will develop, debug, and maintain embedded C firmware, work directly with hardware designs, and own firmware issues from identification through resolution in a fast paced, cross functional environment.
+
+Key Responsibilities:
+
+    Develop, maintain, and debug low level embedded C firmware interacting directly with hardware.
+    Diagnose system and firmware issues across products and code branches.
+    Review schematics and validate firmware behavior against hardware design.
+    Generate engineering binaries, submit changes to repositories, and manage build and packaging workflows.
+    Coordinate closely with hardware, factory, program management, and technical teams.
+    Drive issues to closure by tracking tasks, evaluating priorities, and proactively removing blockers.
+    Communicate progress, risks, and outcomes clearly to stakeholders.
+    Participate in regular sync calls with China based teams during late afternoon or evening hours.
+
+
+Required Skills & Experience:
+
+    Up to 10 years of relevant embedded firmware and driver development.
+    Strong embedded C experience, including low level debugging skills and knowledge of dynamic memory allocation
+    Recent experience with hardware design concepts and ability to read schematics
+    Strong knowledge with interfaces such as GPIO, SPI, I2C. USB (high speed)
+    Python and or Lua scripting to automate testing and debug workflows
+    Create scripts and tools to improve efficiency and reliability of firmware validation
+    Strong communication, organization, and multitasking skills
+    BS in Computer Engineering or equivalent experience, MS is a plus
+
+
+Location: Cupertino, CA (Onsite Monday - Friday)
+Pay Rate Range: $70/hr - $90/hr (DOE)
+
+Embedded Systems Validation Test Engineer (Python)
+
+Description
+In this role you will test and validate firmware and drivers for common firmware interfaces, chipsets, communications protocols and various SoC IPs. You will also implement features to support hardware testing and diagnosis of devices, helping with new technology exploration and proof of concept development. This is a highly multi-functional role, and you'll work closely with various teams, like EE, Systems Engineering, Software Engineering, Hardware Testing, QA, Factory, Manufacturing and Operations.
+
+Qualifications
+
+    2–8+ years of experience in developing and testing embedded systems/devices
+    System Validation testing experience to validate and debug embedded products (FW/SW)
+    Must have excellent Python test automation experience
+    Understanding and experience with ARM platform and architecture/instruction set.
+    Experience with one or more standard hardware protocols (USB, UART, SPI, I2C, I2S, PCIe)
+    Experience with debuggers such as gdb, lid, etc.
+    Able to comprehend hardware specs and schematics.
+    Experience developing drivers/applications in Unix, Linux, or MacOS
+    Excellent written and verbal communication skills.
+    BS or MS in Computer Engineering, Computer Science, Electrical Engineering or equivalent.
+
+
+Preferred Qualifications
+Familiar with C++/Objective-C/Swift
