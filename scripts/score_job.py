@@ -27,6 +27,7 @@ def score_job(description):
     matches = []
 
     for skill, weight in SKILLS.items():
+        print(f"skill: {skill}\tweight: {weight}")
         if skill in text:
             score += weight
             matches.append(skill)
@@ -74,4 +75,18 @@ def choose_resume(description):
 
     return "swe"
 
+if __name__ == "__main__":
+    description = """
+    We are looking for an embedded firmware engineer experienced with stm32, c++,  spi, i2c,
+    linux, and real-time systems.
+    """
+
+    raw_score, matches = score_job(description)
+    normalize_score = normalize(raw_score)
+    resume = choose_resume(description)
+
+    print(f"Raw score: {raw_score}")
+    print(f"Match score: {normalize_score}/10")
+    print(f"Skills matched: {matches}")
+    print(f"Reccomended resume: {resume}")
 
