@@ -102,8 +102,9 @@ def choose_resume(description):
 
     return "swe"
 
-def job_exists(csv_filename, company, role):
+def job_exists(csv_filename, company, role, url):
     csv_path = Path(csv_filename)
+
     if not csv_path.exists():
         return False
 
@@ -111,22 +112,76 @@ def job_exists(csv_filename, company, role):
         reader = csv.DictReader(file)
 
         for row in reader:
-            same_company = (
-                    row["Company"].strip().lower() == company.strip().lower()
-            )
+            # Prefer URL comparison when both jobs have one
+            if url and row.get("URL"):
+                if row["URL"].strip() == url.strip():
+                    return True
 
-            same_role = (
-                    row["Role"].strip().lower() == role.strip().lower()
-            )
+            # Fallbback to company + role
+            same_company = ( row.get("Company", "").strip().lower() == company.strip().lower() )
+            same_role = ( row.get("Role", "").strip().lower() == role.strip().lower() )
 
             if same_company and same_role:
                 return True
     return False
 
+def parse_job_file(filename):
+    with open(filename, "r", encoding="utf-8" as file:
+              content = file.read()
+
+    metadata = {
+        "Company": "",
+        "Role": "",
+        "URL": "",
+        "Location": "",
+    }
+
+    description_lines = []
+    reading_description = False
+    
+    for line in content.splitlines():
+        line = line.strip()
+
+        if line.lower() == "description:":
+              reading_description = True
+              continue
+
+        if reading_description:
+              description_lines.append(line)
+              continue
+
+        for key in metadata:
+            prefix = f"{key}:"
+
+            if line.lower().startswith(prefix.lower()):
+                metadata[key] = line len(prefix):].strip()
+                break
+
+    description "\n".join(description_lines)
+
+    return metadata, description
+
+def validate_job(metadata, description):
+    required_fields = ["Company", "Role"]
+
+    missing = [
+            field
+            for field in required_fields
+            if not metadata[field]
+    ]
+
+    if missing:
+        raise ValueError(f"Missing required metadata: {', '.join(missing)}")
+
+    if not description.strip():
+        raise ValueError("Job description is empty.")
+
 def save_job(
         csv_filename,
         company,
         role,
+        url,
+        location,
         score,
         resume,
         matches,
@@ -142,6 +197,8 @@ def save_job(
         fieldnames = [
                 "Company",
                 "Role",
+                "URL",
+                "Location",
                 "Score",
                 "Resume",
                 "Matched Skills",
@@ -158,6 +215,8 @@ def save_job(
         writer.writerow({
             "Company": company,
             "Role": role,
+            "URL": url,
+            "Location": location,
             "Score": score,
             "Resume": resume,
             "Matched Skills": ", ".join(matches),
