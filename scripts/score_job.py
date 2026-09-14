@@ -18,8 +18,8 @@ SKILLS = {
         "bldc": 3,
         "pmsm": 3,
         "react": 2,
-        "node.js": 2,
-        }
+        "node.js": 2
+}
 
 def score_job(description):
     text = description.lower()
@@ -27,12 +27,11 @@ def score_job(description):
     matches = []
 
     for skill, weight in SKILLS.items():
-        print(f"skill: {skill}\tweight: {weight}")
         if skill in text:
             score += weight
             matches.append(skill)
 
-        return score, matches
+    return score, matches
 
 def normalize(score):
     if score >= 18:
@@ -77,8 +76,7 @@ def choose_resume(description):
 
 if __name__ == "__main__":
     description = """
-    We are looking for an embedded firmware engineer experienced with stm32, c++,  spi, i2c,
-    linux, and real-time systems.
+    We are looking for an embedded firmware engineer experienced with stm32, c++, spi, i2c, linux, and real-time systems.
     """
 
     raw_score, matches = score_job(description)
