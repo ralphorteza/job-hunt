@@ -1,0 +1,12 @@
+Company: Apple
+Role: Firmware Engineer
+URL: https://jobs.apple.com/test-firmware
+Location: Cupertino, CA
+
+Description:
+Apple is looking for a Firmware Engineer with experience
+developing embedded systems using C and C++.
+
+Candidates should have experience with Linux,
+microcontrollers, SPI, I2C, UART, Python,
+and real-time embedded systems.

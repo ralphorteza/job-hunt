@@ -126,7 +126,7 @@ def job_exists(csv_filename, company, role, url):
     return False
 
 def parse_job_file(filename):
-    with open(filename, "r", encoding="utf-8" as file:
+    with open(filename, "r", encoding="utf-8") as file:
               content = file.read()
 
     metadata = {
@@ -154,10 +154,10 @@ def parse_job_file(filename):
             prefix = f"{key}:"
 
             if line.lower().startswith(prefix.lower()):
-                metadata[key] = line len(prefix):].strip()
+                metadata[key] = line[len(prefix):].strip()
                 break
 
-    description "\n".join(description_lines)
+    description = "\n".join(description_lines)
 
     return metadata, description
 
@@ -260,7 +260,7 @@ if __name__ == "__main__":
         print(f"URL: {url}")
 
     print(f"\nRaw score: {raw_score}")
-    print(f"Match score: {normalized_score}/10")
+    print(f"Match score: {normalize_score}/10")
     print(f"Reccomended resume: {resume}")
 
     print("\nMatched skills:")

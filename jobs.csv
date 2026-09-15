@@ -1,2 +1,2 @@
-Company,Role,Score,Resume,Matched Skills,Status,Date Added,Description File
-SpaceX,Software Engineer,8,motor_control,"c++, linux, microcontroller, pid, foc",Interested,2026-09-14,descriptions/spacex_software.txt
+Company,Role,URL,Location,Score,Resume,Matched Skills,Status,Date Added,Description File
+Apple,Firmware Engineer,https://jobs.apple.com/test-firmware,"Cupertino, CA",9,embedded,"c++, linux, microcontroller, spi, i2c, uart, python, real-time",Interested,2026-09-14,descriptions/apple_firmware.txt
