@@ -226,39 +226,41 @@ def save_job(
         })
 
 if __name__ == "__main__":
-    '''    description = """
-    We are looking for an embedded firmware engineer experienced with stm32, c++, spi, i2c, linux, and real-time systems.
-    """
-    '''
-    if len(sys.argv) != 4:
-        print("Usage: python score_job.py "
-              "<job_description_file> <company> <role>"
-        )
+    if len(sys.argv) != 2:
+        print("Usage: python score_job.py " "<job_description_file>")
         sys.exit(1)
-    
-    filename = sys.argv[1]
-    company = sys.argv[2]
-    role = sys.argv[3]
 
-    with open(filename, "r", encoding="utf-8") as file:
-        description = file.read()
+    filename = sys.argv[1]
+
+    try:
+        metadata, description = parse_job_file(filename)
+        validate_job(metadata, description)
+    except FileNotFoundError:
+        print(f"Error: File not found: {filename}")
+        sys.exit(1)
+    except ValueError as error:
+        print(f"Error: {error}")
+        sys.exit(1)
+
+    company = metadata["Company"]
+    role = metadata["Role"]
+    url = metadata["URL"]
+    location = metadata["Location"]
 
     raw_score, matches = score_job(description)
     normalize_score = normalize(raw_score)
     resume = choose_resume(description)
-    missing = find_missing_skills(description)
 
-    print("\nMatched skills:")
-    for skill in matches:
-        print(f"- {skill}")
-    """
-    print("\nMissing skills:")
-    for skill in missing:
-        print(f"- {skill}")
-    """
-    print(f"Raw score: {raw_score}")
-    print(f"Match score: {normalize_score}/10")
-    print(f"Skills matched: {matches}")
+    print(f"\nCompany: {company}")
+    print(f"Role: {role}")
+
+    if location:
+        print(f"Location: {location}")
+    if url:
+        print(f"URL: {url}")
+
+    print(f"\nRaw score: {raw_score}")
+    print(f"Match score: {normalized_score}/10")
     print(f"Reccomended resume: {resume}")
 
     print("\nMatched skills:")
@@ -267,13 +269,20 @@ if __name__ == "__main__":
 
     csv_filename = "jobs.csv"
 
-    if job_exists(csv_filename, company, role):
+    if job_exists(
+            csv_filename,
+            company,
+            role,
+            url
+    ):
         print("\nJob already exists in jobs.csv")
     else:
         save_job(
                 csv_filename,
                 company,
                 role,
+                url,
+                location,
                 normalize_score,
                 resume,
                 matches,
@@ -281,3 +290,4 @@ if __name__ == "__main__":
         )
 
         print("\nJob saved to jobs.csv")
+                
