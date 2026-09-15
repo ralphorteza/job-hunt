@@ -4,25 +4,58 @@ import csv
 from datetime import date
 from pathlib import Path
 
-SKILLS = {
+SKILL_TRACKS = {
+    "embedded": {
+        "c": 2,
         "c++": 3,
-        "c/c++": 3,
+        "firmware": 3,
+        "embedded": 3,
         "embedded linux": 3,
         "linux": 2,
         "stm32": 3,
-        "microcontroller": 2,
+        "microcontroller": 3,
+        "rtos": 3,
+        "real-time": 2,
         "spi": 2,
         "i2c": 2,
         "uart": 2,
-        "python": 1,
+        "can": 2,
+        "device driver": 2,
+        "baremetal": 3,
+    },
+    "motor_control": {
+        "c":2,
+        "c++":3,
+        "firmware": 2,
+        "embedded": 2,
         "real-time": 3,
-        "rtos": 3,
+        "microcontroller": 2,
+        "motor control": 4,
+        "foc": 4,
+        "field oriented control": 4,
         "pid": 3,
-        "foc": 3,
-        "bldc": 3,
-        "pmsm": 3,
-        "react": 2,
-        "node.js": 2
+        "bldc": 4,
+        "pmsm": 4,
+        "pwm": 2,
+        "encoder": 2,
+        "gate driver": 3,
+        "oscilloscope": 2,
+    },
+    "swe": {
+        "python": 3,
+        "java": 3,
+        "javascript": 3,
+        "typescript": 3,
+        "react": 3,
+        "node.js": 3,
+        "linux": 1,
+        "git": 2,
+        "ci/cd": 2,
+        "github actions": 2,
+        "pytest": 2,
+        "api": 2,
+        "rest": 2,
+    },
 }
 
 TARGET_SKILLS = [
