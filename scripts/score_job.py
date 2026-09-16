@@ -1,8 +1,155 @@
 #!/usr/bin/env python3
 import sys
 import csv
+import re
 from datetime import date
 from pathlib import Path
+
+SKILL_PATTERNS = {
+    "c": [
+        r"(?<![\w+])c(?![\w+])",
+        r"(?<!\w)c(?=\s*/\s*c\+\+)",
+    ],
+    "c++": [
+        r"(?<!\w)c\+\+(?!\w)",
+        r"(?<!\w)c\s*/\s*c\+\+(?!\w)",
+    ],
+    "embedded linux": [
+        r"\bembedded\s+linux\b",
+    ],
+
+    "linux": [
+        r"\blinux\b",
+    ],
+
+    "firmware": [
+        r"\bfirmware\b",
+    ],
+
+    "embedded": [
+        r"\bembedded\b",
+    ],
+
+    "stm32": [
+        r"\bstm32\w*\b",
+    ],
+
+    "microcontroller": [
+        r"\bmicrocontrollers?\b",
+        r"\bmcus?\b",
+    ],
+
+    "rtos": [
+        r"\brtos\b",
+        r"\bfreertos\b",
+        r"\breal[\s-]+time\s+operating\s+systems?\b",
+    ],
+
+    "real-time": [
+        r"\breal[\s-]+time\b",
+    ],
+
+    "spi": [
+        r"\bspi\b",
+    ],
+
+    "i2c": [
+        r"\bi2c\b",
+        r"\bi²c\b",
+    ],
+
+    "uart": [
+        r"\buart\b",
+    ],
+
+    "can": [
+        r"\bcan\s+bus\b",
+        r"\bcan\b",
+    ],
+
+    "python": [
+        r"\bpython\b",
+    ],
+
+    "java": [
+        r"\bjava\b",
+    ],
+
+    "javascript": [
+        r"\bjavascript\b",
+    ],
+
+    "typescript": [
+        r"\btypescript\b",
+    ],
+
+    "react": [
+        r"\breact(?:\.js|js)?\b",
+    ],
+
+    "node.js": [
+        r"\bnode(?:\.js|js)\b",
+    ],
+
+    "git": [
+        r"\bgit\b",
+    ],
+
+    "github actions": [
+        r"\bgithub\s+actions\b",
+    ],
+
+    "ci/cd": [
+        r"\bci\s*/\s*cd\b",
+        r"\bcontinuous\s+integration\b",
+        r"\bcontinuous\s+delivery\b",
+        r"\bcontinuous\s+deployment\b",
+    ],
+
+    "pid": [
+        r"\bpid\b",
+        r"\bproportional[\s-]+integral[\s-]+derivative\b",
+    ],
+
+    "foc": [
+        r"\bfoc\b",
+        r"\bfield[\s-]+oriented\s+control\b",
+    ],
+
+    "bldc": [
+        r"\bbldc\b",
+        r"\bbrushless\s+dc\b",
+    ],
+
+    "pmsm": [
+        r"\bpmsm\b",
+        r"\bpermanent\s+magnet\s+synchronous\s+motors?\b",
+    ],
+
+    "pwm": [
+        r"\bpwm\b",
+        r"\bpulse[\s-]+width\s+modulation\b",
+    ],
+
+    "oscilloscope": [
+        r"\boscilloscopes?\b",
+    ],
+
+    "gate driver": [
+        r"\bgate\s+drivers?\b",
+    ],
+
+    "device driver": [
+        r"\bdevice\s+drivers?\b",
+    ],
+
+    "bare metal": [
+        r"\bbare[\s-]+metal\b",
+    ],
+    "motor control": [
+        r"\bmotor\s+control\b"
+    ]
+}
 
 SKILL_TRACKS = {
     "embedded": {
@@ -24,7 +171,7 @@ SKILL_TRACKS = {
         "baremetal": 3,
     },
     "motor_control": {
-        # "c":2,
+        "c":2,
         "c++":3,
         "firmware": 2,
         "embedded": 2,
@@ -83,20 +230,17 @@ def find_missing_skills(description):
             if skill not in text
     ]
       
-# def score_job(description):
-#     text = description.lower()
-#     score = 0
-#     matches = []
-
-#     for skill, weight in SKILLS.items():
-#         if skill in text:
-#             score += weight
-#             matches.append(skill)
-
-#     return score, matches
+def skill_matches(skill, text):
+    patterns = SKILL_PATTERNS.get(skill, [])
+    
+    for pattern in patterns:
+        if re.search(pattern, text, re.IGNORECASE):
+            return True
+    
+    return False
 
 def score_job(description):
-    text = description.lower()
+    # text = description.lower()
     
     results = {}
     
@@ -104,8 +248,12 @@ def score_job(description):
         raw_score = 0
         matches = []
         
-        for skill, weight in skills.items():
-            if skill in text:
+        # for skill, weight in skills.items():
+        #     if skill in text:
+        #         raw_score += weight
+        #         matches.append(skill)
+        for skill, weight in skill.items():
+            if skill_matches(skill, text):
                 raw_score += weight
                 matches.append(skill)
                 
@@ -294,8 +442,17 @@ def save_job(
             "Date Added": date.today().isoformat(),
             "Description File": description_file,
         })
+        
 
 if __name__ == "__main__":
+    # test_text = """
+    # We're looking for an engineer experienced with c/c++, FreeRTOS, STM32 microcontrollers, real-time firmware,
+    # SPI, I2C and UART.
+    # """
+    
+    # for skill in SKILL_PATTERNS:
+    #     if skill_matches(skill, test_text):
+    #         print(skill)
     if len(sys.argv) != 2:
         print("Usage: python score_job.py " "<job_description_file>")
         sys.exit(1)
