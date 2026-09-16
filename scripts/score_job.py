@@ -6,6 +6,18 @@ import json
 from datetime import date
 from pathlib import Path
 
+# Skill weights:
+# 3 = core skill
+# 2 = important skill
+# 1 = supporting weight
+DEFAULT_SKILL_WEIGHT = 1
+
+APPLY_FIT_THRESHOLD = 7.0
+APPLY_REQUIRED_THRESHOLD = 70.0
+
+REVIEW_FIT_THRESHOLD = 5.0
+REVIEW_REQUIRED_THRESHOLD = 50.0
+
 REQUIRED_HEADINGS = [
     "requirements",
     "required qualifications",
@@ -258,6 +270,105 @@ TARGET_SKILLS = [
         "pmsm",
 ]
 
+def count_missing_core_skills(comparison, track):
+    count = 0
+    
+    for skill in comparison["required_missing"]:
+        if get_skill_weight(skill, track) >= 3:
+            count += 1
+    
+    return count
+
+def build_recommendation_reasons(comparison, fit_score, required_percentage):
+    reasons = []
+    
+    if fit_score >= 8:
+        reasons.append("Strong overall skill match")
+    elif fit_score >= 6:
+        reasons.append("Moderate overall skill match")
+    else:
+        reasons.append("Low overall skill match")
+        
+    if required_percentage is not None:
+        if required_percentage >= 85:
+            reasons.append("Most required skills are covered")
+        elif required_percentage >= 70:
+            reasons.append("Good coverage of required skills")
+        elif required_percentage >= 50:
+            reasons.append("Several required skills are missing")
+        else:
+            reasons.append("Many required skills are missing")
+            
+    return reasons
+
+def build_skill_warnings(comparison, track):
+    warnings = []
+    missing_required = comparison["required_missing"]
+    
+    for skill in missing_required:
+        weight = get_skill_weight(skill, track)
+        
+        if weight >= 3:
+            warnings.append(f"Missing core required skill: {skill}")
+        else:
+            warnings.append(f"Missing required skill: {skill}")
+            
+    return warnings
+
+def recommend_application(fit_score, required_percentage, missing_core_skills):
+    # Some posting don't have a recognizable
+    # required-qualifications section.
+    if missing_core_skills >= 3:
+        return "SKIP"
+    
+    if missing_core_skills >= 2:
+        return "REVIEW"
+    
+    if required_percentage is None:
+        if fit_score >= APPLY_FIT_THRESHOLD:
+            return "APPLY"
+        
+        if fit_score >= REVIEW_FIT_THRESHOLD:
+            return "REVIEW"
+        
+        return "SKIP"
+    
+    if (
+        fit_score >= APPLY_FIT_THRESHOLD
+        and required_percentage >= APPLY_REQUIRED_THRESHOLD
+    ):
+        return "APPLY"
+        
+    if (
+        fit_score >= REVIEW_FIT_THRESHOLD
+        and required_percentage >= REVIEW_REQUIRED_THRESHOLD
+    ):
+        return "REVIEW"
+    
+    return "SKIP"
+
+def calculate_priority(recommendation, fit_score, required_percentage):
+    if recommenation == "SKIP":
+        return "LOW"
+    
+    if (
+        recommendation == "APPLY"
+        and fit_score >= 8.5
+        and (
+            required_percentage is None
+            or required_percentage >= 85
+        )
+    ):
+        return "HIGH"
+    
+    if recommendation == "APPLY":
+        return "MEDIUM"
+    
+    return "LOW"
+
+def get_skill_weight(skill, track):
+    return SKILL_TRACKS.get(track, {}).get(skill, DEFAULT_SKILL_WEIGHT)
+
 def extract_job_skills(description):
     sections = split_job_sections(description)
     job_skills = []
@@ -309,27 +420,33 @@ def compare_profile(job_skills, profile):
     return results
 
 
-def calculate_match_percentage(matched, missing):
-    total = len(matched) + len(missing)
+def calculate_weighted_match(matched, missing, track):
+    matched_wieght = sum(get_skill_weight(skill,track) for skill in missing)
+    missing_wieght = sum(get_skill_weight(skill,track) for skill in missing)
     
-    if total == 0:
+    total_weight = matched_wieght + missing_wieght
+    
+    if total_weight == 0:
         return None
     
-    return (len(matched) / total) * 100
+    return (matched_wieght / total_weight) * 100
 
 
 def calculate_fit_score(comparison):
-    required_percentage = calculate_match_percentage(
+    required_percentage = calculate_weighted_match(
         comparison["required_matched"],
-        comparison["required_missing"]
+        comparison["required_missing"],
+        track
     )
-    preferred_percentage = calculate_match_percentage(
+    preferred_percentage = calculate_weighted_match(
         comparison["preferred_matched"],
-        comparison["preferred_missing"]
+        comparison["preferred_missing"],
+        track
     )
-    general_percentage = calculate_match_percentage(
+    general_percentage = calculate_weighted_match(
         comparison["general_matched"],
-        comparison["general_missing"]
+        comparison["general_missing"],
+        track
     )
     
     weighted_total = 0
@@ -342,14 +459,14 @@ def calculate_fit_score(comparison):
     if preferred_percentage is not None:
         weighted_total += preferred_percentage * 0.20
         total_weight += 0.20
-
+        
     if general_percentage is not None:
         weighted_total += general_percentage * 0.15
         total_weight += 0.15
         
-    if total_weight == 0:
+    if weighted_total == 0:
         return 0
-    
+        
     percentage = weighted_total / total_weight
     return round(percentage / 10, 1)
         
@@ -464,30 +581,6 @@ def score_job(description):
         }
     return results
 
-# def score_job(description):
-#     # text = description.lower()
-    
-#     results = {}
-    
-#     for track, skills, in SKILL_TRACKS.items():
-#         raw_score = 0
-#         matches = []
-        
-#         # for skill, weight in skills.items():
-#         #     if skill in text:
-#         #         raw_score += weight
-#         #         matches.append(skill)
-#         for skill, weight in skill.items():
-#             if skill_matches(skill, text):
-#                 raw_score += weight
-#                 matches.append(skill)
-                
-#         results[track] = {
-#             "raw_score": raw_score,
-#             "matches": matches,
-#         }
-        
-#     return results
 
 def normalize(score):
     if score >= 18:
@@ -620,15 +713,21 @@ def validate_job(metadata, description):
         raise ValueError("Job description is empty.")
 
 def save_job(
-        csv_filename,
-        company,
-        role,
-        url,
-        location,
-        score,
-        resume,
-        matches,
-        description_file
+    csv_filename,
+    company,
+    role,
+    url,
+    location,
+    track,
+    track_score,
+    fit_score,
+    required_percentage,
+    preferred_percentage,
+    recommendation,
+    priority,
+    missing_required,
+    resume,
+    description_file
 ):
     csv_path = Path(csv_filename)
 
@@ -642,14 +741,18 @@ def save_job(
                 "Role",
                 "URL",
                 "Location",
-                "Score",
+                "Job Track",
+                "Track Score",
+                "Fit Score",
+                "Required Match %",
+                "Preferred Match %",
+                "Recommendation",
+                "Priority",
+                "Missing Required skills",
                 "Resume",
-                "Required Matches",
-                "Preferred Matches",
-                "General Matches",
                 "Status",
                 "Date Added",
-                "Description File"
+                "Description File",
         ]
 
         writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -680,13 +783,25 @@ def save_job(
             "Role": role,
             "URL": url,
             "Location": location,
-            "Score": score,
-            "Resume": resume,
-
-            "Required Matches": ", ".join(required_matches),
-            "Preferred Matches": ", ".join(preferred_matches),
-            "General Matches": ", ".join(general_matches),
+            "Track Score": track_score,
+            "Fit Score": fit_score,
             
+            "Required Match %": (
+                round(required_percentage)
+                if required_percentage is not None
+                else ""
+            ),
+            "Preferred Match %": (
+                round(preferred_percentage)
+                if preferred_percentage is not None
+                else ""
+            ),
+            "Recommendation": reccomendation,
+            "Priority": priority,
+            
+            "Missing Required Skills": ", ".join(missing_required),
+            
+            "Resume": resume,
             "Status": "Interested",
             "Date Added": date.today().isoformat(),
             "Description File": description_file,
@@ -694,20 +809,13 @@ def save_job(
         
 
 if __name__ == "__main__":
-    # test_text = """
-    # We're looking for an engineer experienced with c/c++, FreeRTOS, STM32 microcontrollers, real-time firmware,
-    # SPI, I2C and UART.
-    # """
-    
-    # for skill in SKILL_PATTERNS:
-    #     if skill_matches(skill, test_text):
-    #         print(skill)
     if len(sys.argv) != 2:
         print("Usage: python score_job.py " "<job_description_file>")
         sys.exit(1)
 
     filename = sys.argv[1]
 
+    # 2. Parse job description file
     try:
         metadata, description = parse_job_file(filename)
         validate_job(metadata, description)
@@ -717,27 +825,126 @@ if __name__ == "__main__":
     except ValueError as error:
         print(f"Error: {error}")
         sys.exit(1)
+        
+    company = metadata["Company"]
+    role = metadata["Role"]
+    url = metadata["URL"]
+    location = metadata["Location"]
 
-    profile = load_profile("config/profile.json")
-    validate_profile(profile)
+    # 3. Classify the job
+    results = score_job(description)
+    results = normalize_results(results)
     
+    resume = choose_resume(results)
+    
+    normalized_score = results[resume]["score"]
+    matches = results[resume]["matches"]
+    
+    # 4. Load candidate profile
+    try:
+        profile = load_profile("config/profile.json")
+        validate_profile(profile)
+    except FileNotFoundError:
+        print("Error: config/profile.json was not found.")
+        sys.exit(1)
+    except ValueError as error:
+        print(f"Profile error: {error}")
+        sys.exit(1)
+    
+    # 5. Extract skills requested by employer
     job_skills = extract_job_skills(description)
     
+    # 6. Compare job against candidate profile
     comparison = compare_profile(job_skills, profile)
-    fit_score = calculate_fit_score(comparison)
     
-    required_percentage = calculate_match_percentage(
+    # 7. Calculate weighted match percentages
+    required_percentage = calculate_weighted_match(
         comparison["required_matched"],
-        comparison["required_missing"]
+        comparison["required_missing"],
+        resume
     )
     
-    preferred_percentage = calculate_match_percentage(
+    preferred_percentage = calculate_weighted_match(
         comparison["preferred_matched"],
-        comparison["preferred_missing"]
+        comparison["preferred_missing"],
+        resume
     )
     
+    general_percentage = calculate_weighted_match(
+        comparison["general_matched"],
+        comparison["general_missing"],
+        resume
+    )
     print("\nCandidate fit:")
     
+    # 8. Calculate overall fit
+    fit_score = calculate_fit_score(comparison, resume)
+    
+    # 9. Detect missing core skills
+    missing_core_skills =count_missing_core_skills(comparison, resume)
+    
+    # 10. Generate application recommendation
+    recommendation = recommend_application(
+        fit_score,
+        required_percentage,
+        missing_core_skills
+    )
+    
+    priority = calculate_priority(
+        recommendation,
+        fit_score,
+        required_percentage
+    )
+    
+    reasons = build_recommendation_reasons(
+        comparison,
+        fit_score,
+        required_percentage
+    )
+    
+    warnings = build_skill_warnings(
+        comparison,
+        resume
+    )
+    
+    # 11. Print basic job information
+    print("\n" + "=" * 50)
+    print("JOB")
+    print("=" * 50)
+    
+    print(f"Company:   {company}")
+    print(f"Role:      {role}")
+    
+    if location:
+        print(f"Location:  {location}")
+    if url:
+        print(f"URL:       {url}")
+    
+    # 12. Print Job classification
+    print("\nTrack scores:")
+    
+    for track, result in results.items():
+        print(
+            f"   {track:<15} "
+            f"{result['score']}/10 "
+            f"(raw: {result['raw_score']:.1f})"
+        )
+    
+    print(f"\nRecommended resume: {resume}")
+    
+    # 13. Print matched job skills
+    print("\nMatched skills:")
+    for match in matches:
+        print(
+            f"- {match['skill']:<20} "
+            f"[{match['section']}] "
+            f"+{match['weighted_score']:.1f}"
+        )    
+    
+    # 14. Print candidate fit
+    print("\n" + "=" * 50)
+    print("CANDIDATE FIT")
+    print("=" * 50)
     if required_percentage is not None:
         print(
             f"Required match: "
@@ -753,47 +960,89 @@ if __name__ == "__main__":
         )
     else:
         print("Preferred match: N/A")
+        
+    if general_percentage is not None:
+        print(
+            f"General match: "
+            f"{general_percentage:.0f}%"
+        )
+    else:
+        print("General match: N/A")
     
     print(f"\nOverall fit: {fit_score}/10")
     
-    
+    # 15. Print required skills
     print("\nRequired skills matched:")
-    for skill in comparison["required_matched"]:
-        print(f" ✓ {skill}")
+    
+    if comparison["required_matched"]:    
+        for skill in comparison["required_matched"]:
+            weight = get_skill_weight(skill, resume)
+            print(
+                f" ✓ {skill}"
+                f"weight: {weight}"
+            )
+    else:
+        print("  None")
         
     print("\nRequired skills missing:")
-    for skill in comparison["required_missing"]:
-        print(f" ✗ {skill}")
-        
+    if comparison["required_missing"]:
+        for skill in comparison["required_missing"]:
+            weight = get_skill_weight(skill, resume)
+            print(
+                f" ✗ {skill}"
+                f"weight: {weight}"
+            )
+    else:
+        print("  None")
+    
+    # 16. Print preferred skills
     print("\nPreferred skills matched:")
-    for skill in comparison["preferred_matched"]:
-        print(f" ✓ {skill}")
-        
+    if comparison["preferred_matched"]:
+        for skill in comparison["preferred_matched"]:
+            print(f" ✓ {skill}")
+    else:
+        print("  None")
+    
     print("\nPreferred skills missing:")
-    for skill in comparison["preferred_missing"]:
-        print(f" - {skill}")
+    if comparison["preferred_missing"]:                    
+        for skill in comparison["preferred_missing"]:
+            print(f" - {skill}")
+    else:
+        print("  None")
         
-    company = metadata["Company"]
-    role = metadata["Role"]
-    url = metadata["URL"]
-    location = metadata["Location"]
-
-    results = score_job(description)
-    results = normalize_results(results)
+    # 17. Print final recommendation
+    print("\n" + "=" * 50)
+    print("APPLICATION RECOMMENDATION")
+    print("=" * 50)
     
-    resume = choose_resume(results)
+    print(f"Priority:           {priority}")
+    print(f"Resume:             {resume}")
+    print(f"Overall fit:        {fit_score}/10")
     
-    normalized_score = results[resume]["score"]
-    matches = results[resume]["matches"]
-
-    print(f"\nCompany: {company}")
-    print(f"Role: {role}")
-
-    if location:
-        print(f"Location: {location}")
-    if url:
-        print(f"URL: {url}")
-
+    if required_percentage is not None:
+        print(
+            f"Required match: "
+            f"{required_percentage:.0f}%"
+        )
+        
+    if preferred_percentage is not None:
+        print(
+            f"Preferred match: "
+            f"{preferred_percentage:.0f}%"
+        )
+        
+    # 18. Print reasons
+    print("\nWhy:")
+    for reason in reasons:
+        print(f"  ✓ {reason}")
+        
+    # 19. Print warnings
+    if warnings:
+        print("\nWarnings:")
+        for warning in warnings:
+            print(f"  ! {warning}")
+    
+    
     print("\nTrack scores:")
     for track, result in results.items():
         print(
@@ -801,21 +1050,7 @@ if __name__ == "__main__":
             f"{result['score']}/10 "
             f"(raw: {result['raw_score']})"
         )
-        
-    
-    # print(f"\nRaw score: {raw_score}")
-    # print(f"Match score: {normalize_score}/10")
-    print(f"Reccomended resume: {resume}")
 
-    print("\nMatched skills:")
-    # for skill in matches:
-    #     print(f"- {skill}")
-    for match in matches:
-        print(
-            f"- {match['skill']:<20} "
-            f"[{match['section']}] "
-            f"+{match['weighted_score']:.1f}"
-        )
     csv_filename = "jobs.csv"
 
     if job_exists(
@@ -827,15 +1062,21 @@ if __name__ == "__main__":
         print("\nJob already exists in jobs.csv")
     else:
         save_job(
-                csv_filename,
-                company,
-                role,
-                url,
-                location,
-                normalized_score,
-                resume,
-                matches,
-                filename
+            csv_filename,
+            company,
+            role,
+            url,
+            location,
+            resume,
+            normalized_score,
+            fit_score,
+            required_percentage,
+            preferred_percentage,
+            recommendation,
+            priority,
+            comparison["required_missing"],
+            resume,
+            filename
         )
 
         print("\nJob saved to jobs.csv")
