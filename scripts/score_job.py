@@ -2,6 +2,7 @@
 import sys
 import csv
 import re
+import json
 from datetime import date
 from pathlib import Path
 
@@ -257,6 +258,113 @@ TARGET_SKILLS = [
         "pmsm",
 ]
 
+def extract_job_skills(description):
+    sections = split_job_sections(description)
+    job_skills = []
+    
+    for skill in SKILL_PATTERNS:
+        section = find_skill_section(skill, sections)
+        
+        if section is not None:
+            job_skills.append({
+                "skill": skill,
+                "section": section,
+            })
+            
+    return job_skills
+
+def compare_profile(job_skills, profile):
+    candidate_skills = {skill.lower() for skill in profile["skills"]}
+    
+    results = {
+        "required_matched": [],
+        "required_missing": [],
+        "preferred_matched": [],
+        "preferred_missing": [],
+        "general_matched": [],
+        "general_missing": [],
+    }
+    
+    for item in job_skills:
+        skill = item["skill"]
+        section = item["section"]
+        
+        has_skill = skill.lower() in candidate_skills
+        
+        if section == "required":
+            if has_skill:
+                results["required_matched"].append(skill)
+            else:
+                results["required_missing"].append(skill)
+        elif section == "preferred":
+            if has_skill:
+                results["preferred_matched"].append(skill)
+            else:
+                results["preferred_missing"].append(skill)
+        else:
+            if has_skill:
+                results["general_matched"].append(skill)
+            else:
+                results["general_missing"].append(skill)
+    return results
+
+
+def calculate_match_percentage(matched, missing):
+    total = len(matched) + len(missing)
+    
+    if total == 0:
+        return None
+    
+    return (len(matched) / total) * 100
+
+
+def calculate_fit_score(comparison):
+    required_percentage = calculate_match_percentage(
+        comparison["required_matched"],
+        comparison["required_missing"]
+    )
+    preferred_percentage = calculate_match_percentage(
+        comparison["preferred_matched"],
+        comparison["preferred_missing"]
+    )
+    general_percentage = calculate_match_percentage(
+        comparison["general_matched"],
+        comparison["general_missing"]
+    )
+    
+    weighted_total = 0
+    total_weight = 0
+    
+    if required_percentage is not None:
+        weighted_total += required_percentage * 0.65
+        total_weight += 0.65
+
+    if preferred_percentage is not None:
+        weighted_total += preferred_percentage * 0.20
+        total_weight += 0.20
+
+    if general_percentage is not None:
+        weighted_total += general_percentage * 0.15
+        total_weight += 0.15
+        
+    if total_weight == 0:
+        return 0
+    
+    percentage = weighted_total / total_weight
+    return round(percentage / 10, 1)
+        
+def load_profile(filename):
+    with open(filename, "r", encoding="utf-8") as file:
+        profile = json.load(file)
+        
+    return profile
+
+def validate_profile(profile):
+    if "skills" not in profile:
+        raise ValueError("profile.json is missing the 'skills' field.")
+    
+    if not isinstance(profile["skills"], list):
+        raise ValueError("'skills' in profile.json must be a list.")
 
 def detect_section(line):
     heading = line.strip().lower().rstrip(":")
@@ -610,6 +718,61 @@ if __name__ == "__main__":
         print(f"Error: {error}")
         sys.exit(1)
 
+    profile = load_profile("config/profile.json")
+    validate_profile(profile)
+    
+    job_skills = extract_job_skills(description)
+    
+    comparison = compare_profile(job_skills, profile)
+    fit_score = calculate_fit_score(comparison)
+    
+    required_percentage = calculate_match_percentage(
+        comparison["required_matched"],
+        comparison["required_missing"]
+    )
+    
+    preferred_percentage = calculate_match_percentage(
+        comparison["preferred_matched"],
+        comparison["preferred_missing"]
+    )
+    
+    print("\nCandidate fit:")
+    
+    if required_percentage is not None:
+        print(
+            f"Required match: "
+            f"{required_percentage:.0f}%"
+        )
+    else:
+        print("Required match: N/A")
+        
+    if preferred_percentage is not None:
+        print(
+            f"Preferred match: "
+            f"{preferred_percentage:.0f}%"
+        )
+    else:
+        print("Preferred match: N/A")
+    
+    print(f"\nOverall fit: {fit_score}/10")
+    
+    
+    print("\nRequired skills matched:")
+    for skill in comparison["required_matched"]:
+        print(f" ✓ {skill}")
+        
+    print("\nRequired skills missing:")
+    for skill in comparison["required_missing"]:
+        print(f" ✗ {skill}")
+        
+    print("\nPreferred skills matched:")
+    for skill in comparison["preferred_matched"]:
+        print(f" ✓ {skill}")
+        
+    print("\nPreferred skills missing:")
+    for skill in comparison["preferred_missing"]:
+        print(f" - {skill}")
+        
     company = metadata["Company"]
     role = metadata["Role"]
     url = metadata["URL"]
@@ -622,10 +785,6 @@ if __name__ == "__main__":
     
     normalized_score = results[resume]["score"]
     matches = results[resume]["matches"]
-
-    # raw_score, matches = score_job(description)
-    # normalize_score = normalize(raw_score)
-    # resume = choose_resume(description)
 
     print(f"\nCompany: {company}")
     print(f"Role: {role}")
