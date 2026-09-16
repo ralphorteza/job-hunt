@@ -6,7 +6,7 @@ from pathlib import Path
 
 SKILL_TRACKS = {
     "embedded": {
-        "c": 2,
+        # "c": 2,
         "c++": 3,
         "firmware": 3,
         "embedded": 3,
@@ -24,7 +24,7 @@ SKILL_TRACKS = {
         "baremetal": 3,
     },
     "motor_control": {
-        "c":2,
+        # "c":2,
         "c++":3,
         "firmware": 2,
         "embedded": 2,
@@ -82,17 +82,39 @@ def find_missing_skills(description):
             for skill in TARGET_SKILLS
             if skill not in text
     ]
+      
+# def score_job(description):
+#     text = description.lower()
+#     score = 0
+#     matches = []
+
+#     for skill, weight in SKILLS.items():
+#         if skill in text:
+#             score += weight
+#             matches.append(skill)
+
+#     return score, matches
+
 def score_job(description):
     text = description.lower()
-    score = 0
-    matches = []
-
-    for skill, weight in SKILLS.items():
-        if skill in text:
-            score += weight
-            matches.append(skill)
-
-    return score, matches
+    
+    results = {}
+    
+    for track, skills, in SKILL_TRACKS.items():
+        raw_score = 0
+        matches = []
+        
+        for skill, weight in skills.items():
+            if skill in text:
+                raw_score += weight
+                matches.append(skill)
+                
+        results[track] = {
+            "raw_score": raw_score,
+            "matches": matches,
+        }
+        
+    return results
 
 def normalize(score):
     if score >= 18:
@@ -107,9 +129,24 @@ def normalize(score):
         return 6
     else:
         return 4
+    
 
-def choose_resume(description):
-    text = description.lower()
+def normalize_results(results):
+    for track in results:
+        raw_score = results[track]["raw_score"]
+        
+        results[track]["score"] = normalize(raw_score)
+    
+    return results  
+
+
+def choose_resume(results):
+    best_track = max(results, key=lambda track: results[track]["raw_score"])
+    return best_track
+
+# def choose_resume(description):
+#     text = description.lower()
+
 
     motor_terms = [
             "foc",
@@ -280,9 +317,17 @@ if __name__ == "__main__":
     url = metadata["URL"]
     location = metadata["Location"]
 
-    raw_score, matches = score_job(description)
-    normalize_score = normalize(raw_score)
-    resume = choose_resume(description)
+    results = score_job(description)
+    results = normalize_results(results)
+    
+    resume = choose_resume(results)
+    
+    normalized_score = results[resume]["score"]
+    matches = results[resume]["matches"]
+
+    # raw_score, matches = score_job(description)
+    # normalize_score = normalize(raw_score)
+    # resume = choose_resume(description)
 
     print(f"\nCompany: {company}")
     print(f"Role: {role}")
@@ -292,8 +337,17 @@ if __name__ == "__main__":
     if url:
         print(f"URL: {url}")
 
-    print(f"\nRaw score: {raw_score}")
-    print(f"Match score: {normalize_score}/10")
+    print("\nTrack scores:")
+    for track, result in results.items():
+        print(
+            f"  {track:<15} "
+            f"{result['score']}/10 "
+            f"(raw: {result['raw_score']})"
+        )
+        
+    
+    # print(f"\nRaw score: {raw_score}")
+    # print(f"Match score: {normalize_score}/10")
     print(f"Reccomended resume: {resume}")
 
     print("\nMatched skills:")
@@ -316,7 +370,7 @@ if __name__ == "__main__":
                 role,
                 url,
                 location,
-                normalize_score,
+                normalized_score,
                 resume,
                 matches,
                 filename
