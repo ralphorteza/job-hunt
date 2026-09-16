@@ -1,2 +1,2 @@
-Company,Role,URL,Location,Score,Resume,Matched Skills,Status,Date Added,Description File
-Apple,Firmware Engineer,https://jobs.apple.com/test-firmware,"Cupertino, CA",10,embedded,"c++, firmware, embedded, linux, microcontroller, real-time, spi, i2c, uart, can",Interested,2026-09-15,descriptions/apple_firmware.txt
+Company,Role,URL,Location,Score,Resume,Required Matches,Preferred Matches,General Matches,Status,Date Added,Description File
+Test Robotics,Embedded Firmware Engineer,https://example.com/job/123,"San Jose, CA",10,embedded,"c++, embedded, embedded linux, linux, microcontroller, spi, i2c, uart","stm32, rtos","firmware, real-time",Interested,2026-09-15,descriptions/test_robotics.txt

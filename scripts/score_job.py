@@ -5,6 +5,41 @@ import re
 from datetime import date
 from pathlib import Path
 
+REQUIRED_HEADINGS = [
+    "requirements",
+    "required qualifications",
+    "minimum qualifications",
+    "basic qualifications",
+    "what you need"
+    "what we're looking for",
+    "what we are looking for",
+]
+
+PREFERRED_HEADINGS = [
+    "preferred qualifications",
+    "preferred sklls",
+    "nice to have",
+    "nice-to-have",
+    "bonus qualifications",
+    "bonus points",
+    "desired qualifications",
+]
+
+GENERAL_HEADINGS = [
+    "responsibilities",
+    "what you'll do",
+    "what you will do",
+    "about the role",
+    "the role",
+    "job description",
+]
+
+SECTION_WEIGHTS = {
+    "required": 1.5,
+    "general": 1.0,
+    "preferred": 0.5,
+}
+
 SKILL_PATTERNS = {
     "c": [
         r"(?<![\w+])c(?![\w+])",
@@ -223,6 +258,56 @@ TARGET_SKILLS = [
 ]
 
 
+def detect_section(line):
+    heading = line.strip().lower().rstrip(":")
+    
+    if heading in REQUIRED_HEADINGS:
+        return "required"
+    
+    if heading in PREFERRED_HEADINGS:
+        return "preferred"
+    
+    if heading in GENERAL_HEADINGS:
+        return "general"
+    
+    return None
+
+
+def find_skill_section(skill, sections):
+    if skill_matches(skill, sections["required"]):
+        return "required"
+    
+    if skill_matches(skill, sections["general"]):
+        return "general"
+    
+    if skill_matches(skill, sections["preferred"]):
+        return "preferred"
+    
+    return None
+
+def split_job_sections(description):
+    sections = {
+        "required": [],
+        "preferred": [],
+        "general": [],
+    }
+    
+    current_section = "general"
+    
+    for line in description.splitlines():
+        detected = detect_section(line)
+        
+        if detected:
+            current_section = detected
+            continue
+        
+        sections[current_section].append(line)
+        
+    return {
+        section: "\n".join(lines)
+        for section, lines in sections.items()
+    }
+
 def find_missing_skills(description):
     text = description.lower()
     return [skill
@@ -240,29 +325,61 @@ def skill_matches(skill, text):
     return False
 
 def score_job(description):
-    # text = description.lower()
+    sections = split_job_sections(description)
     
     results = {}
     
-    for track, skills, in SKILL_TRACKS.items():
+    for track, skills in SKILL_TRACKS.items():
         raw_score = 0
         matches = []
         
-        # for skill, weight in skills.items():
-        #     if skill in text:
-        #         raw_score += weight
-        #         matches.append(skill)
-        for skill, weight in skill.items():
-            if skill_matches(skill, text):
-                raw_score += weight
-                matches.append(skill)
-                
+        for skill, weight in skills.items():
+            section = find_skill_section(skill, sections)
+            
+            if section is None:
+                continue
+            
+            multiplier = SECTION_WEIGHTS[section]
+            weighted_score = weight * multiplier
+            raw_score += weighted_score
+            
+            matches.append({
+                "skill": skill,
+                "section": section,
+                "base_weight": weight,
+                "weighted_score": weighted_score,
+            })
+            
         results[track] = {
             "raw_score": raw_score,
             "matches": matches,
         }
-        
     return results
+
+# def score_job(description):
+#     # text = description.lower()
+    
+#     results = {}
+    
+#     for track, skills, in SKILL_TRACKS.items():
+#         raw_score = 0
+#         matches = []
+        
+#         # for skill, weight in skills.items():
+#         #     if skill in text:
+#         #         raw_score += weight
+#         #         matches.append(skill)
+#         for skill, weight in skill.items():
+#             if skill_matches(skill, text):
+#                 raw_score += weight
+#                 matches.append(skill)
+                
+#         results[track] = {
+#             "raw_score": raw_score,
+#             "matches": matches,
+#         }
+        
+#     return results
 
 def normalize(score):
     if score >= 18:
@@ -419,7 +536,9 @@ def save_job(
                 "Location",
                 "Score",
                 "Resume",
-                "Matched Skills",
+                "Required Matches",
+                "Preferred Matches",
+                "General Matches",
                 "Status",
                 "Date Added",
                 "Description File"
@@ -430,6 +549,24 @@ def save_job(
         if not file_exists:
             writer.writeheader()
 
+        required_matches = [
+            match["skill"]
+            for match in matches
+            if match["section"] == "required"
+        ]
+        
+        preferred_matches = [
+            match["skill"]
+            for match in matches
+            if match["section"] == "preferred"
+        ]
+        
+        general_matches = [
+            match["skill"]
+            for match in matches
+            if match["section"] == "general"
+        ]
+        
         writer.writerow({
             "Company": company,
             "Role": role,
@@ -437,7 +574,11 @@ def save_job(
             "Location": location,
             "Score": score,
             "Resume": resume,
-            "Matched Skills": ", ".join(matches),
+
+            "Required Matches": ", ".join(required_matches),
+            "Preferred Matches": ", ".join(preferred_matches),
+            "General Matches": ", ".join(general_matches),
+            
             "Status": "Interested",
             "Date Added": date.today().isoformat(),
             "Description File": description_file,
@@ -508,9 +649,14 @@ if __name__ == "__main__":
     print(f"Reccomended resume: {resume}")
 
     print("\nMatched skills:")
-    for skill in matches:
-        print(f"- {skill}")
-
+    # for skill in matches:
+    #     print(f"- {skill}")
+    for match in matches:
+        print(
+            f"- {match['skill']:<20} "
+            f"[{match['section']}] "
+            f"+{match['weighted_score']:.1f}"
+        )
     csv_filename = "jobs.csv"
 
     if job_exists(

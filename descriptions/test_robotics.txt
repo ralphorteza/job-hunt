@@ -1,0 +1,24 @@
+Company: Test Robotics
+Role: Embedded Firmware Engineer
+URL: https://example.com/job/123
+Location: San Jose, CA
+
+Description:
+
+About the Role
+
+You will develop real-time embedded firmware for
+robotic systems.
+
+Minimum Qualifications
+
+Experience programming in C/C++.
+Experience developing embedded Linux systems.
+Experience with SPI, I2C, and UART.
+Experience working with microcontrollers.
+
+Preferred Qualifications
+
+Experience with FreeRTOS.
+Experience with Python.
+Experience with STM32.
