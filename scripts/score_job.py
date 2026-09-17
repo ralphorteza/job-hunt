@@ -348,7 +348,7 @@ def recommend_application(fit_score, required_percentage, missing_core_skills):
     return "SKIP"
 
 def calculate_priority(recommendation, fit_score, required_percentage):
-    if recommenation == "SKIP":
+    if recommendation == "SKIP":
         return "LOW"
     
     if (
@@ -432,7 +432,7 @@ def calculate_weighted_match(matched, missing, track):
     return (matched_wieght / total_weight) * 100
 
 
-def calculate_fit_score(comparison):
+def calculate_fit_score(comparison, track):
     required_percentage = calculate_weighted_match(
         comparison["required_matched"],
         comparison["required_missing"],
@@ -807,6 +807,89 @@ def save_job(
             "Description File": description_file,
         })
         
+def process_job(filename):
+    metadata, description = parse_job_file(filename)
+    validate_job(metadata, description)
+    
+    company = metadata["Company"]
+    role = metadata["Role"]
+    url = metadata["URL"]
+    location = metadata["Location"]
+    
+    # determine the job track
+    results = score_job(description)
+    results = normalize_results(results)
+    
+    resume = choose_resume(results)
+    track_score = results[resume]["score"]
+    
+    # Load candidate profile
+    profile = load_profile("config/profile.json")
+    validate_profile(profile)
+    
+    # Compare candidate against job
+    job_skills = extract_job_skills(description)
+    comparison = compare_profile(job_skills, profile)
+    
+    required_percentage = calculate_weighted_match(
+        comparison["required_matched"],
+        comparison["required_missing"],
+        resume
+    )
+    preferred_percentage = calculate_weighted_match(
+        comparison["preferred_matched"],
+        comparison["preferred_missing"],
+        resume
+    )
+    general_percentage = calculate_weighted_match(
+        comparison["general_matched"],
+        comparison["general_missing"],
+        resume
+    )
+    
+    fit_score = calculate_fit_score(comparison, resume)
+    missing_core_skills = count_missing_core_skills(comparison, resume)
+    
+    recommendation = recommend_application(
+        fit_score,
+        required_percentage,
+        missing_core_skills
+    )
+    
+    priority = calculate_priority(
+        recommendation,
+        fit_score,
+        required_percentage
+    )
+    
+    return {
+        "company": company,
+        "role": role,
+        "url": url,
+        "location": location,
+        
+        "track": resume,
+        "track_score": track_score,
+        "resume": resume,
+        
+        "fit_score": fit_score,
+        
+        "required_percentage": required_percentage,
+        "preferred_percentage": preferred_percentage,
+        "general_percentage": general_percentage,
+        
+        "required_matched": comparison["required_matched"],
+        "required_missing": comparison["required_missing"],
+        
+        "preferred_matched": comparison["preferred_matched"],
+        "preferred_missing": comparison["preferred_missing"],
+        
+        "missing_core_skills": missing_core_skills,
+        "priority": priority,
+        
+        "description_file": str(filename),
+    }
+    
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -817,8 +900,7 @@ if __name__ == "__main__":
 
     # 2. Parse job description file
     try:
-        metadata, description = parse_job_file(filename)
-        validate_job(metadata, description)
+        job = process_job(filename)
     except FileNotFoundError:
         print(f"Error: File not found: {filename}")
         sys.exit(1)
