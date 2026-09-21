@@ -991,7 +991,7 @@ if __name__ == "__main__":
     fit_score = calculate_fit_score(comparison, resume)
     
     # 9. Detect missing core skills
-    missing_core_skills =count_missing_core_skills(comparison, resume)
+    missing_core_skills =count_missing_core_skills(comparison, resume) 
     
     # 10. Generate application recommendation
     recommendation = recommend_application(

@@ -1,7 +1,0 @@
-Company,Role,URL,Location,Job Track,Track Score,Fit Score,Required Match %,Preferred Match %,Recommendation,Priority,Missing Required Skills,Resume,Status,Date Added,Description File
-Apex Electric Systems,Senior Motor Drive Controls Engineer,https://example.com/jobs/apex-controls-005,"Palo Alto, CA",,10,5.0,50,50,SKIP,LOW,"real-time, can, pid, foc, bldc, pmsm, pwm, gate driver, device driver, bare metal, motor control",motor_control,Interested,2026-09-21,descriptions/dummy_difficult_motor_control.txt
-Acme Robotics,Embedded Firmware Engineer,https://example.com/jobs/acme-embedded-001,"San Jose, CA",,10,5.0,,50,REVIEW,LOW,,embedded,Interested,2026-09-21,descriptions/dummy_embedded_firmware.txt
-Orbital Devices,Embedded Linux Software Engineer,https://example.com/jobs/orbital-linux-004,"Mountain View, CA",,10,5.0,50,50,REVIEW,LOW,device driver,embedded,Interested,2026-09-21,descriptions/dummy_embedded_linux.txt
-Data Planet,Senior Data Platform Engineer,https://example.com/jobs/data-planet-006,Remote,,6,5.0,50,,REVIEW,LOW,java,swe,Interested,2026-09-21,descriptions/dummy_low_match.txt
-Vector Motion,Motor Control Firmware Engineer,https://example.com/jobs/vector-motor-002,"Fremont, CA",,10,5.0,50,50,SKIP,LOW,"real-time, pid, pwm, motor control",motor_control,Interested,2026-09-21,descriptions/dummy_motor_control.txt
-Cloud Widget Labs,Software Engineer,https://example.com/jobs/cloud-widget-swe-003,"San Francisco, CA",,10,5.0,50,50,SKIP,LOW,"javascript, react, node.js",swe,Interested,2026-09-21,descriptions/dummy_swe.txt

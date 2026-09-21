@@ -91,6 +91,9 @@ def save_processed_job(job, csv_filename="jobs.csv"):
         job["description_file"],
     )
     
+    print()
+    print("Job added to jobs.csv")
+    
 def process_directory(directory, csv_filename="jobs.csv"):
     files = find_job_files(directory)
     
