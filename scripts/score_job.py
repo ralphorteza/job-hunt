@@ -648,17 +648,44 @@ def job_exists(csv_filename, company, role, url):
         reader = csv.DictReader(file)
 
         for row in reader:
-            # Prefer URL comparison when both jobs have one
-            if url and row.get("URL"):
-                if row["URL"].strip() == url.strip():
+            row_url = row.get("URL", "").strip()
+            
+            # If both have URLs, URL is authoritative
+            if url and row_url:
+                if row_url == url.strip():
                     return True
-
-            # Fallbback to company + role
-            same_company = ( row.get("Company", "").strip().lower() == company.strip().lower() )
-            same_role = ( row.get("Role", "").strip().lower() == role.strip().lower() )
-
+                
+                # Different URLS = different postings.
+                continue
+            
+            same_company = (
+                row.get("Company", "")
+                .strip()
+                .lower()
+                == company.strip().lower()
+            )
+            
+            same_role = (
+                row.get("Role", "")
+                .strip()
+                .lower()
+                == role.strip().lower()
+            )
+            
             if same_company and same_role:
                 return True
+        # for row in reader:
+        #     # Prefer URL comparison when both jobs have one
+        #     if url and row.get("URL"):
+        #         if row["URL"].strip() == url.strip():
+        #             return True
+
+        #     # Fallbback to company + role
+        #     same_company = ( row.get("Company", "").strip().lower() == company.strip().lower() )
+        #     same_role = ( row.get("Role", "").strip().lower() == role.strip().lower() )
+
+        #     if same_company and same_role:
+        #         return True
     return False
 
 def parse_job_file(filename):
@@ -748,7 +775,7 @@ def save_job(
                 "Preferred Match %",
                 "Recommendation",
                 "Priority",
-                "Missing Required skills",
+                "Missing Required Skills",
                 "Resume",
                 "Status",
                 "Date Added",
@@ -760,23 +787,23 @@ def save_job(
         if not file_exists:
             writer.writeheader()
 
-        required_matches = [
-            match["skill"]
-            for match in matches
-            if match["section"] == "required"
-        ]
+        # required_matches = [
+        #     match["skill"]
+        #     for match in matches
+        #     if match["section"] == "required"
+        # ]
         
-        preferred_matches = [
-            match["skill"]
-            for match in matches
-            if match["section"] == "preferred"
-        ]
+        # preferred_matches = [
+        #     match["skill"]
+        #     for match in matches
+        #     if match["section"] == "preferred"
+        # ]
         
-        general_matches = [
-            match["skill"]
-            for match in matches
-            if match["section"] == "general"
-        ]
+        # general_matches = [
+        #     match["skill"]
+        #     for match in matches
+        #     if match["section"] == "general"
+        # ]
         
         writer.writerow({
             "Company": company,
@@ -796,7 +823,7 @@ def save_job(
                 if preferred_percentage is not None
                 else ""
             ),
-            "Recommendation": reccomendation,
+            "Recommendation": recommendation,
             "Priority": priority,
             
             "Missing Required Skills": ", ".join(missing_required),
@@ -885,6 +912,7 @@ def process_job(filename):
         "preferred_missing": comparison["preferred_missing"],
         
         "missing_core_skills": missing_core_skills,
+        "recommendation": recommendation,
         "priority": priority,
         
         "description_file": str(filename),

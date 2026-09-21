@@ -1,0 +1,36 @@
+Company: Cloud Widget Labs
+Role: Software Engineer
+URL: https://example.com/jobs/cloud-widget-swe-003
+Location: San Francisco, CA
+
+Description:
+
+About the Role
+
+Cloud Widget Labs is looking for a Software Engineer to develop internal tools and customer-facing web applications.
+
+Responsibilities
+
+Develop backend services and web applications.
+Build REST APIs.
+Write automated tests.
+Participate in code reviews.
+Maintain CI/CD pipelines.
+Work with Linux development environments.
+
+Required Qualifications
+
+Experience with Python.
+Experience with JavaScript.
+Experience with React.
+Experience with Node.js.
+Experience with Git.
+Experience developing APIs.
+
+Preferred Qualifications
+
+Experience with TypeScript.
+Experience with GitHub Actions.
+Experience with pytest.
+Experience with CI/CD.
+Experience with Linux.

@@ -1,0 +1,39 @@
+Company: Acme Robotics
+Role: Embedded Firmware Engineer
+URL: https://example.com/jobs/acme-embedded-001
+Location: San Jose, CA
+
+Description:
+
+About the Role
+
+Acme Robotics is seeking an Embedded Firmware Engineer to develop firmware for robotic control systems. You will work closely with electrical and mechanical engineers to develop reliable embedded software for production hardware.
+
+Responsibilities
+
+Develop embedded firmware in C and C++.
+Develop firmware for STM32 microcontrollers.
+Debug hardware and firmware using oscilloscopes and logic analyzers.
+Develop SPI, I2C, and UART communication interfaces.
+Work with embedded Linux systems.
+Participate in firmware architecture and code reviews.
+
+Minimum Qualifications
+
+Experience with C and C++.
+Experience developing embedded firmware.
+Experience with microcontrollers.
+Experience with STM32.
+Experience with SPI.
+Experience with I2C.
+Experience with UART.
+Experience with Linux.
+Experience with Git.
+
+Preferred Qualifications
+
+Experience with RTOS or FreeRTOS.
+Experience with bare-metal firmware development.
+Experience writing device drivers.
+Experience with Python.
+Experience with CAN bus.

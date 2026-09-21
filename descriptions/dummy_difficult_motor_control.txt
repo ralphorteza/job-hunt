@@ -1,0 +1,35 @@
+Company: Apex Electric Systems
+Role: Senior Motor Drive Controls Engineer
+URL: https://example.com/jobs/apex-controls-005
+Location: Palo Alto, CA
+
+Description:
+
+About the Role
+
+Apex Electric Systems is seeking an experienced engineer to develop advanced motor drive firmware for high-power electric propulsion systems.
+
+Minimum Qualifications
+
+Experience developing production motor control firmware.
+Expert-level C++ experience.
+Experience with real-time embedded systems.
+Experience implementing field-oriented control.
+Experience implementing FOC algorithms.
+Experience controlling PMSM motors.
+Experience controlling BLDC motors.
+Experience designing PID control loops.
+Experience with PWM generation.
+Experience with gate drivers.
+Experience with CAN bus.
+Experience developing bare-metal firmware.
+Experience developing device drivers.
+
+Preferred Qualifications
+
+Experience with STM32 microcontrollers.
+Experience with embedded Linux.
+Experience with Python.
+Experience using oscilloscopes.
+Experience with SPI.
+Experience with I2C.

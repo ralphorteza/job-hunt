@@ -1,0 +1,37 @@
+Company: Orbital Devices
+Role: Embedded Linux Software Engineer
+URL: https://example.com/jobs/orbital-linux-004
+Location: Mountain View, CA
+
+Description:
+
+About the Role
+
+Orbital Devices develops Linux-based embedded computing platforms for aerospace applications.
+
+What You'll Do
+
+Develop software for embedded Linux platforms.
+Develop and debug device drivers.
+Interface Linux systems with custom hardware.
+Develop low-level C and C++ software.
+Debug SPI and UART communication.
+Develop automated hardware testing tools.
+
+Basic Qualifications
+
+Experience with C.
+Experience with C++.
+Experience with Linux.
+Experience with embedded Linux.
+Experience with device drivers.
+Experience with Git.
+
+Preferred Qualifications
+
+Experience with SPI.
+Experience with UART.
+Experience with I2C.
+Experience with Python.
+Experience with microcontrollers.
+Experience with bare-metal development.

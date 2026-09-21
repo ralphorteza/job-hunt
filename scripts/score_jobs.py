@@ -49,7 +49,7 @@ def print_queue(jobs):
         
         print(
             f"{index:>2}. "
-            f"[{job[priority]:<6}] "
+            f"[{job['priority']:<6}] "
             f"{job['company']} - "
             f"{job['role']}"
         )

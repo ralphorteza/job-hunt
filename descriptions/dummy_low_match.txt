@@ -1,0 +1,29 @@
+Company: Data Planet
+Role: Senior Data Platform Engineer
+URL: https://example.com/jobs/data-planet-006
+Location: Remote
+
+Description:
+
+About the Role
+
+Data Planet is looking for a Senior Data Platform Engineer to design and operate large-scale distributed data infrastructure.
+
+Required Qualifications
+
+Experience with Java.
+Experience with distributed systems.
+Experience designing cloud infrastructure.
+Experience with Kubernetes.
+Experience with Apache Kafka.
+Experience with Apache Spark.
+Experience with SQL.
+Experience operating production cloud services.
+
+Preferred Qualifications
+
+Experience with Python.
+Experience with Linux.
+Experience with Git.
+Experience with CI/CD.
+Experience with REST APIs.

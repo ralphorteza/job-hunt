@@ -1,0 +1,39 @@
+Company: Vector Motion
+Role: Motor Control Firmware Engineer
+URL: https://example.com/jobs/vector-motor-002
+Location: Fremont, CA
+
+Description:
+
+About the Role
+
+Vector Motion is developing high-performance electric drive systems for autonomous machines. We are looking for a Motor Control Firmware Engineer to develop real-time control firmware.
+
+What You'll Do
+
+Develop real-time embedded firmware in C and C++.
+Implement motor control algorithms.
+Develop high-frequency control loops.
+Debug power electronics and embedded hardware.
+Work with PWM peripherals and gate drivers.
+Use oscilloscopes to validate motor-control performance.
+
+Minimum Qualifications
+
+Experience with C and C++.
+Experience with embedded firmware.
+Experience with real-time systems.
+Experience with motor control.
+Experience with PID control.
+Experience with PWM.
+Experience with microcontrollers.
+
+Preferred Qualifications
+
+Experience with field-oriented control.
+Experience with FOC.
+Experience with BLDC motors.
+Experience with PMSM motors.
+Experience with gate drivers.
+Experience with CAN bus.
+Experience with STM32.
