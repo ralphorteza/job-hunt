@@ -3,7 +3,6 @@ from pathlib import Path
 
 from score_job import(
     process_job,
-    job_exists,
     processed_job_exists,
     save_processed_job,
 )
@@ -129,16 +128,6 @@ def main():
     location = input(
         "Location (optional): "
     ).strip()
-    
-    if job_exists(
-        "jobs.csv",
-        company,
-        role,
-        url
-    ):
-        print()
-        print("Job already exists in jobs.csv")
-        return
     
     description = reading_description()
     
