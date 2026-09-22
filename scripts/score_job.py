@@ -638,9 +638,6 @@ def choose_resume(results):
 
     return "swe"
 
-TODO 
-def metadata_job_exists():
-    pass
 # def meta_data_exists(
 #     company,
 #     role,
