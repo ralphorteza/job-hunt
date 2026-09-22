@@ -12,6 +12,66 @@ HEADERS = {
     )
 }
 
+def clean_job_title(title):
+    if not title:
+        return ""
+    separators = [
+        " | Careers",
+        " - Careers",
+        " | Jobs",
+        " - Jobs",
+    ]
+    
+    for separator in separators:
+        if separator.lower() in title.lower():
+            index = title.lower().find(
+                separator.lower()
+            )
+            
+            title = title[:index]
+            
+    return title.strip()
+
+
+def extract_title_from_html(soup):
+    title = get_meta_content(soup, "og:title", "twitter:title")
+    
+    if title:
+        return title
+    
+    h1 = soup.find("h1")
+    
+    if h1:
+        return clean_text(h1.get_text(" ", strip=True))
+    
+    if soup.title:
+        return clean_text(soup.title.get_text(" ", strip=True))
+
+    return ""
+
+def get_meta_content(soup, *names):
+    for name in names:
+        tag = soup.find("meta", attrs={"property":name})
+    
+        if not tag:
+            tag = soup.find("meta", attrs={"name": name})
+            
+        if tag:
+            content = tag.get("content")
+            
+            if content:
+                return clean_text(content)
+    
+    return ""
+
+def clean_text(text):
+    if not text:
+        return ""
+    
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
 def fetch_page(url):
     response = requests.get(
         url,
@@ -117,7 +177,7 @@ def extract_location(posting):
         for part in parts
         if part
     )
-    
+
 def extract_job_from_url(url):
     html = fetch_page(url)
     
@@ -135,7 +195,8 @@ def extract_job_from_url(url):
     
     company = extract_company(posting)
     
-    role = str(posting.get("title", "")).strip()
+    # role = str(posting.get("title", "")).strip()
+    role = clean_job_title(extract_title_from_html(soup))
     
     location = extract_location(posting)
     
