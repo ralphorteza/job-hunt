@@ -1,8 +1,10 @@
 import re
 from pathlib import Path
 
+from job_url import extract_job_from_url
 from score_job import(
     process_job,
+    job_exists,
     processed_job_exists,
     save_processed_job,
 )
@@ -113,26 +115,77 @@ def main():
     print("ADD JOB")
     print("=" * 50)
     
-    company = read_required(
-        "Company: "
-    )
+    print()
+    print("1. Import from URL")
+    print("2. Paste Manually")
+    print()
     
-    role = read_required(
-        "Role: "
-    )
+    choice = input("Choose method [1/2]: ").strip()
     
-    url = input(
-        "URL (optional): "
-    ).strip()
+    if choice == "1":
+        url = input("Job URL: ").strip()
+        
+        try:
+            imported = extract_job_from_url(url)
+        except Exception as error:
+            print()
+            print(f"Could not import job: {error}")
+            print("Try manual paste mode for this posting.")
+            return
+        
+        company = imported["company"]
+        role = imported["role"]
+        location = imported["location"]
+        description = imported["description"]
+    elif choice == "2":        
+        company = read_required(
+            "Company: "
+        )
+        
+        role = read_required(
+            "Role: "
+        )
+        
+        url = input(
+            "URL (optional): "
+        ).strip()
+        
+        location = input(
+            "Location (optional): "
+        ).strip()
+        
+        description = reading_description()
+    else:
+        print("Invalid selection.")
     
-    location = input(
-        "Location (optional): "
-    ).strip()
-    
-    description = reading_description()
-    
+    if not company:
+        company = read_required("Company could not be detected. Company: ")
+    if not role:
+        role = read_required("Role could not be detected. Role: ")
+    if not location:
+        location = input(
+            "Location could not be detected"
+            "(optional): "
+        )
     if not description:
         print("Error: Job description is empty")
+        return
+    
+    print()
+    print("Detected job:")
+    print(f"  Company:  {company}")
+    print(f"  Role:     {role}")
+    print(f"  Location: {location or 'Unknown'}")
+    print(f"  URL:      {url}")
+    
+    if job_exists(
+        "jobs.csv",
+        company,
+        role,
+        url
+    ):
+        print()
+        print("Job already exists in jobs.csv")
         return
     
     path = save_description(
@@ -149,7 +202,7 @@ def main():
     
     try:
         job = process_job(path)
-        
+        save_processed_job(job)
     except (ValueError, OSError) as error:
         print(f"Error scoring job: {error}")
         return

@@ -93,7 +93,9 @@ def extract_location(posting):
     if not location:
         return ""
     
-    if isinstance(location, dict):
+    if isinstance(location, list):
+        if not location:
+            return ""
         location = location[0]
         
     if not isinstance(location, dict):
