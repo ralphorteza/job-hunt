@@ -638,6 +638,22 @@ def choose_resume(results):
 
     return "swe"
 
+TODO 
+def metadata_job_exists():
+    pass
+# def meta_data_exists(
+#     company,
+#     role,
+#     url,
+#     csv_filename="jobs.csv"
+# ):
+#     return job_exists(
+#         csv_filename,
+#         company,
+#         role,
+#         url
+#     )
+
 def job_exists(csv_filename, company, role, url):
     csv_path = Path(csv_filename)
 
