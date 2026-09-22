@@ -688,6 +688,14 @@ def job_exists(csv_filename, company, role, url):
         #         return True
     return False
 
+def processed_job_exists(job, csv_filename="jobs.csv"):
+    return job_exists(
+        csv_filename,
+        job["company"],
+        job["role"],
+        job["url"]
+    )
+
 def parse_job_file(filename):
     with open(filename, "r", encoding="utf-8") as file:
               content = file.read()
@@ -833,6 +841,28 @@ def save_job(
             "Date Added": date.today().isoformat(),
             "Description File": description_file,
         })
+        
+def save_processed_job(job, csv_filename="jobs.csv"):
+    save_job(
+        csv_filename,
+        job["company"],
+        job["role"],
+        job["url"],
+        job["location"],
+        job["track"],
+        job["track_score"],
+        job["fit_score"],
+        job["required_percentage"],
+        job["preferred_percentage"],
+        job["recommendation"],
+        job["priority"],
+        job["required_missing"],
+        job["resume"],
+        job["description_file"],
+    )
+    
+    print()
+    print("Job added to jobs.csv")
         
 def process_job(filename):
     metadata, description = parse_job_file(filename)

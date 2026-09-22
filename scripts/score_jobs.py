@@ -3,8 +3,8 @@ from pathlib import Path
 
 from score_job import (
     process_job,
-    job_exists,
-    save_job,
+    processed_job_exists,
+    save_processed_job,
 )
 
 PRIORITY_ORDER = {
@@ -72,27 +72,6 @@ def find_job_files(directory):
     
     return sorted(directory.glob("*.txt"))
 
-def save_processed_job(job, csv_filename="jobs.csv"):
-    save_job(
-        csv_filename,
-        job["company"],
-        job["role"],
-        job["url"],
-        job["location"],
-        job["track"],
-        job["track_score"],
-        job["fit_score"],
-        job["required_percentage"],
-        job["preferred_percentage"],
-        job["recommendation"],
-        job["priority"],
-        job["required_missing"],
-        job["resume"],
-        job["description_file"],
-    )
-    
-    print()
-    print("Job added to jobs.csv")
     
 def process_directory(directory, csv_filename="jobs.csv"):
     files = find_job_files(directory)
@@ -106,25 +85,34 @@ def process_directory(directory, csv_filename="jobs.csv"):
         
         try:
             job = process_job(filename)
-            
-            if job_exists(
-                csv_filename,
-                job["company"],
-                job["role"],
-                job["url"],
-            ):
-                print("   Duplicate - skipped")
+            if processed_job_exists(job, csv_filename):
+                print(" Duplicate - skipped")
                 skipped_duplicates += 1
                 continue
             
             save_processed_job(job, csv_filename)
-            processed_jobs.append(job)
             
-            print(
-                f"   {job['recommendation']} "
-                f"|  {job['priority']} "
-                f"| Fit {job['fit_score']}/10"
-            )
+            process_job.append(job)
+            
+                    
+            # if job_exists(
+            #     csv_filename,
+            #     job["company"],
+            #     job["role"],
+            #     job["url"],
+            # ):
+            #     print("   Duplicate - skipped")
+            #     skipped_duplicates += 1
+            #     continue
+            
+            # save_processed_job(job, csv_filename)
+            # processed_jobs.append(job)
+            
+            # print(
+            #     f"   {job['recommendation']} "
+            #     f"|  {job['priority']} "
+            #     f"| Fit {job['fit_score']}/10"
+            #)
         except (ValueError, OSError) as error:
             print(f"   Error: {error}")
             failed_jobs.append({

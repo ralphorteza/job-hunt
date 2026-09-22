@@ -3,8 +3,8 @@ from pathlib import Path
 
 from score_job import(
     process_job,
-    job_exists,
-    save_job,
+    processed_job_exists,
+    save_processed_job,
 )
 
 def make_filename(company, role):
@@ -152,6 +152,7 @@ def main():
         
     except (ValueError, OSError) as error:
         print(f"Error scoring job: {error}")
+        return
         
     print()
     print("=" * 50)
@@ -177,37 +178,11 @@ def main():
             f"Preferred match: {preferred:.0f}%"
         )
         
-    csv_filename = "jobs.csv"
-    
-    if job_exists(
-        csv_filename,
-        job["company"],
-        job["role"],
-        job["url"]
-    ):
+    if processed_job_exists(job):
         print()
         print("Job already exists in jobs.csv")
         return
     
-    save_job(
-        csv_filename,
-        job["company"],
-        job["role"],
-        job["url"],
-        job["location"],
-        job["track"],
-        job["track_score"],
-        job["fit_score"],
-        job["required_percentage"],
-        job["preferred_percentage"],
-        job["recommendation"],
-        job["priority"],
-        job["required_missing"],
-        job["resume"],
-        job["description_file"],
-    )
-    
-    print()
     print("Job added to jobs.csv")
     
 if __name__ == "__main__":
