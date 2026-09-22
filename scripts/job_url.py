@@ -3,6 +3,7 @@ import re
 
 import requests
 from bs4 import BeautifulSoup
+from copy import deepcopy
 
 HEADERS = {
     "User-Agent": (
@@ -147,6 +148,72 @@ def extract_company(posting):
         
     return
 
+def is_valid_description(text):
+    if not text:
+        return False
+    
+    # Job descriptions should normally containt
+    # subtantially more than a page title.
+    if len(text) < 200:
+        return False
+    
+    words = text.split()
+    
+    if len(words) < 30:
+        return False
+    
+    return True
+
+def clean_description(text):
+    if not text:
+        return ""
+    
+    lines = []
+    
+    for line in text.splitlines():
+        line = re.sub(r"[ \t]+", " ", line).strip()
+        
+        if line:
+            lines.append(line)
+            
+    return "\n".join(lines)
+
+def extract_description_from_html(soup):
+    selectors = [
+        "[data-job-description]",
+        ".job-description",
+        "#job-description",
+        ".jobDescription",
+        "article",
+        "main",
+    ]
+    
+    for selector in selectors:
+        element = soup.select_one(selector)
+        
+        if not element:
+            continue
+        
+        element = deepcopy(element)
+        remove_page_noise(element)
+        
+        text = element.get_text("separator=\n",strip=True)
+        text = clean_description(text)
+        
+        if is_valid_description(text):
+            return text
+        
+    return ""
+
+def remove_page_noise(soup):
+    for element in soup.select(
+        "script, style, nav, footer, "
+        "header, noscript, iframe"
+    ):
+        element.decompose()
+        
+    return soup
+
 def extract_location(posting):
     location = posting.get("jobLocation")
     
@@ -177,6 +244,48 @@ def extract_location(posting):
         for part in parts
         if part
     )
+
+def extract_location_from_html(soup):
+    selectors = [
+        "[data-job-location]",
+        ".job-location",
+        ".location",
+        ".jobLocation",
+        ".job-location-name",
+    ]
+    
+    for selector in selectors:
+        element = soup.select_one(selector)
+        
+        if element:
+            text = clean_text(element.get_text(" ", strip=True))
+            if text:
+                return text
+    
+    return ""
+
+def extract_job_from_html(soup):
+    company = get_meta_content(soup, "og:site_name")
+    
+    if company:
+        return company
+    
+    selectors = [
+        "[data-company-name]",
+        ".company-name",
+        ".employer-name",
+        ".hiring-organization",
+    ]
+    
+    for selector in selectors:
+        element = soup.select_one(selector)
+        
+        if element:
+            text = clean_text(element.get_text(" ", strip=True))
+            if text:
+                return text
+    
+    return ""
 
 def extract_job_from_url(url):
     html = fetch_page(url)
