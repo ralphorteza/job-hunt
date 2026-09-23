@@ -4,10 +4,9 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from copy import deepcopy
-from urllib.parse import (
-    urlparse,
-    urlunparse,
-    parse_qsl,urlencode
+from url_utils import (
+    validate_url,
+    normalize_url,
 )
 
 HEADERS = {
@@ -17,68 +16,7 @@ HEADERS = {
         "Chrome/120 Safari/537.36"
     )
 }
-
-TRACKING_PARAMS = {
-    "source",
-    "src",
-    "ref",
-    "referrer",
-    "tracking",
-    "trackingid",
-    "gh_src",
-}
-
-def normalize_url(url):
-    parsed = urlparse(url)
-    query_params = parse_qsl(parsed.query, keep_blank_values=True)
-    filtered_params = []
     
-    for key, value in query_params:
-        key_lower = key.lower()
-        
-        if key_lower.startswith("utm_"):
-            continue
-        
-        if key_lower in TRACKING_PARAMS:
-            continue
-        
-        filtered_params.append( (key, value) )
-    
-    query = urlencode(filtered_params, doseq=True)
-    
-    path = parsed.path
-    if path != "/":
-        path = path.rstrip("/")
-    
-    normalized = parsed._replace(
-        scheme=parse.scheme.lower(),
-        netloc=parsed.netloc.lower(),
-        path=path,
-        query=query,
-        fragment=""
-    )
-    
-    return urlunparse(normalized)
-    
-    
-
-def validate_url(url):
-    url = url.strip()
-    
-    if not url:
-        raise ValueError("URL cannot be empty.")
-    
-    parsed = urlparse(url)
-        
-    if parsed.scheme not in ("http", "https"):
-        raise ValueError("URL must begin with http:// or https://")
-    
-    if not parsed.netloc:
-        raise ValueError("URL is missing a hostname.")
-    
-    return url
-    
-
 
 def extract_html_fallback(soup, url):
     company = extract_description_from_html(soup)
@@ -102,8 +40,6 @@ def extract_html_fallback(soup, url):
     }
     
     
-
-
 def clean_job_title(title):
     if not title:
         return ""
@@ -400,7 +336,9 @@ def extract_job_from_url(url):
             return {
                 "company": company,
                 "role": role,
-                "url": url,
+                "url": normalized_url,
+                "original_url": original_url,
+                "final_url": final_url,
                 "location": location,
                 "description": description,
                 "extraction_method": "json-ld",
@@ -412,6 +350,7 @@ def extract_job_from_url(url):
     job["original_url"] = original_url
     job["final_url"] = final_url
     
+    return job
     
     
     
@@ -435,6 +374,11 @@ if __name__ == "__main__":
     print(f"Company: {job['company']}")
     print(f"Role: {job['role']}")
     print(f"Location: {job['location']}")
+    
+    print(f"Original URL: {job['original_url']}")
+    print(f"Final URL: {job['final_url']}")
+    print(f"Normal URL: {job['url']}")
+    
     
     print("\nDescription: \n")
     print(job["description"])

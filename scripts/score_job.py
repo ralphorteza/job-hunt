@@ -6,7 +6,7 @@ import json
 from datetime import date
 from pathlib import Path
 from job_url import normalize_url
-
+from url_utils import normalize_url
 # Skill weights:
 # 3 = core skill
 # 2 = important skill
@@ -666,14 +666,17 @@ def job_exists(csv_filename, company, role, url):
             
             if url and row_url:
                 try:
-                    normalized_new = normalize_url(url)
-                    normalized_existing = normalize_url(row_url)
-                    if normalized_new == normalized_existing:
+                    new_url = normalize_url(url)
+                    existing_url = normalize_url(row_url)
+                    
+                    if new_url == existing_url:
                         return True
                     
                 except ValueError:
                     pass
                 
+                # Both jobs have valid-looking URLs,
+                # but they're different postings
                 continue
             
             same_company = (
