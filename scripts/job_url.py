@@ -4,6 +4,11 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from copy import deepcopy
+from urllib.parse import (
+    urlparse,
+    urlunparse,
+    parse_qsl,urlencode
+)
 
 HEADERS = {
     "User-Agent": (
@@ -12,6 +17,67 @@ HEADERS = {
         "Chrome/120 Safari/537.36"
     )
 }
+
+TRACKING_PARAMS = {
+    "source",
+    "src",
+    "ref",
+    "referrer",
+    "tracking",
+    "trackingid",
+    "gh_src",
+}
+
+def normalize_url(url):
+    parsed = urlparse(url)
+    query_params = parse_qsl(parsed.query, keep_blank_values=True)
+    filtered_params = []
+    
+    for key, value in query_params:
+        key_lower = key.lower()
+        
+        if key_lower.startswith("utm_"):
+            continue
+        
+        if key_lower in TRACKING_PARAMS:
+            continue
+        
+        filtered_params.append( (key, value) )
+    
+    query = urlencode(filtered_params, doseq=True)
+    
+    path = parsed.path
+    if path != "/":
+        path = path.rstrip("/")
+    
+    normalized = parsed._replace(
+        scheme=parse.scheme.lower(),
+        netloc=parsed.netloc.lower(),
+        path=path,
+        query=query,
+        fragment=""
+    )
+    
+    return urlunparse(normalized)
+    
+    
+
+def validate_url(url):
+    url = url.strip()
+    
+    if not url:
+        raise ValueError("URL cannot be empty.")
+    
+    parsed = urlparse(url)
+        
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError("URL must begin with http:// or https://")
+    
+    if not parsed.netloc:
+        raise ValueError("URL is missing a hostname.")
+    
+    return url
+    
 
 
 def extract_html_fallback(soup, url):
@@ -99,15 +165,18 @@ def clean_text(text):
 
 
 def fetch_page(url):
+    url = validate_url(url)
     response = requests.get(
         url,
         headers=HEADERS,
-        timeout=15
+        timeout=15,
+        allow_redirects=True
     )
     
     response.raise_for_status()
+    final_url = response.url
     
-    return response.text
+    return response.text, final_url
 
 def clean_html(html):
     soup = BeautifulSoup(html, "html.parser")
@@ -313,7 +382,9 @@ def extract_job_from_html(soup):
     return ""
 
 def extract_job_from_url(url):
-    html = fetch_page(url)
+    original_url = validate_url(url)
+    html, final_url = fetch_page(original_url)
+    normalized_url = normalize_url(final_url)
     soup = BeautifulSoup(html, "html.parser")
     posting = extract_json_ld(soup)
     
@@ -336,7 +407,10 @@ def extract_job_from_url(url):
             }
             
     # Fall back to the regular HTML.
-    return extract_html_fallback(soup, url)
+    job = extract_html_fallback(soup, normalized_url)
+    
+    job["original_url"] = original_url
+    job["final_url"] = final_url
     
     
     
@@ -351,9 +425,12 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python scripts/job_url.py <URL>")
         sys.exit(1)
+    try:    
+        job = extract_job_from_url(sys.argv[1])
+    except (ValueError, requests.RequestException) as error:
+        print(f"Error: {error}")
+        sys.exit(1)
         
-    job = extract_job_from_url(sys.argv[1])
-    
     print(f"Extraction: {job['extraction_method']}")
     print(f"Company: {job['company']}")
     print(f"Role: {job['role']}")

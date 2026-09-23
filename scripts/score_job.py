@@ -5,6 +5,7 @@ import re
 import json
 from datetime import date
 from pathlib import Path
+from job_url import normalize_url
 
 # Skill weights:
 # 3 = core skill
@@ -663,12 +664,16 @@ def job_exists(csv_filename, company, role, url):
         for row in reader:
             row_url = row.get("URL", "").strip()
             
-            # If both have URLs, URL is authoritative
             if url and row_url:
-                if row_url == url.strip():
-                    return True
+                try:
+                    normalized_new = normalize_url(url)
+                    normalized_existing = normalize_url(row_url)
+                    if normalized_new == normalized_existing:
+                        return True
+                    
+                except ValueError:
+                    pass
                 
-                # Different URLS = different postings.
                 continue
             
             same_company = (
@@ -687,18 +692,6 @@ def job_exists(csv_filename, company, role, url):
             
             if same_company and same_role:
                 return True
-        # for row in reader:
-        #     # Prefer URL comparison when both jobs have one
-        #     if url and row.get("URL"):
-        #         if row["URL"].strip() == url.strip():
-        #             return True
-
-        #     # Fallbback to company + role
-        #     same_company = ( row.get("Company", "").strip().lower() == company.strip().lower() )
-        #     same_role = ( row.get("Role", "").strip().lower() == role.strip().lower() )
-
-        #     if same_company and same_role:
-        #         return True
     return False
 
 def processed_job_exists(job, csv_filename="jobs.csv"):
