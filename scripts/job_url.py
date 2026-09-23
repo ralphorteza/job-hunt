@@ -13,6 +13,31 @@ HEADERS = {
     )
 }
 
+
+def extract_html_fallback(soup, url):
+    company = extract_description_from_html(soup)
+    
+    role = extract_description_from_html(soup)
+    role = clean_job_title(role)
+
+    location = extract_description_from_html(soup)
+    description = extract_description_from_html(soup)
+    
+    if not description:
+        raise ValueError("Could not extract a usable job desctription from HTML")
+    
+    return {
+        "company": company,
+        "role": role,
+        "url": url,
+        "location": location,
+        "description": description,
+        "extraction_method": "html",
+    }
+    
+    
+
+
 def clean_job_title(title):
     if not title:
         return ""
@@ -289,37 +314,32 @@ def extract_job_from_html(soup):
 
 def extract_job_from_url(url):
     html = fetch_page(url)
-    
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-    
+    soup = BeautifulSoup(html, "html.parser")
     posting = extract_json_ld(soup)
     
-    if not posting:
-        raise ValueError(
-            "No JobPosting structured data found."
-        )
+    # Preferred method
+    if posting:
+        company = extract_company(posting)
+        role = clean_text( str(posting.get("title", "")))
+        location = extract_location(posting)
+        
+        description_html = str(posting.get("description", ""))
+        description = clean_html(description_html)
+        if description:
+            return {
+                "company": company,
+                "role": role,
+                "url": url,
+                "location": location,
+                "description": description,
+                "extraction_method": "json-ld",
+            }
+            
+    # Fall back to the regular HTML.
+    return extract_html_fallback(soup, url)
     
-    company = extract_company(posting)
     
-    # role = str(posting.get("title", "")).strip()
-    role = clean_job_title(extract_title_from_html(soup))
     
-    location = extract_location(posting)
-    
-    description_html = str(posting.get("description",""))
-    
-    description = clean_html(description_html)
-    
-    return {
-        "company": company,
-        "role": role,
-        "url": url,
-        "location": location,
-        "description": description,
-    }
     
 
 '''
@@ -334,10 +354,12 @@ if __name__ == "__main__":
         
     job = extract_job_from_url(sys.argv[1])
     
+    print(f"Extraction: {job['extraction_method']}")
     print(f"Company: {job['company']}")
     print(f"Role: {job['role']}")
     print(f"Location: {job['location']}")
     
     print("\nDescription: \n")
     print(job["description"])
+    
     
