@@ -1,0 +1,44 @@
+Company: Astranis
+Role: Embedded Software Engineer - Network Software
+URL: https://job-boards.greenhouse.io/astranis/jobs/4363202006?gh_src=602966e76us
+Location: San Francisco
+
+Description:
+Astranis builds advanced satellites for high orbits, expanding humanity’s reach into the solar system. Today, Astranis satellites provide dedicated, secure networks to highly-sophisticated customers across the globe— large enterprises, sovereign governments, and the US military. With five satellites on orbit and many more set to launch soon, the company is servicing a backlog of more than $1 billion of commercial contracts.
+Astranis is the preferred satellite communications partner for buyers with stringent requirements for uptime, data security, network visibility, and customization. Astranis has raised over $750 million from some of the world’s best investors, from Andreessen Horowitz to Blackrock and Fidelity, and employs a team of 450 engineers and entrepreneurs. Astranis designs, builds, and operates its satellites out of its 153,000 sq. ft. headquarters in Northern California, USA.
+Embedded Software Engineer - Network Software
+As a Embedded Software Engineer on the Network Software team at Astranis, you will be responsible for assisting with architecture, high level design choices, development, execution, and implementation of the flight software that commands and monitors the spacecraft. Additionally, you will mentor junior members and collaborate with other teams to ensure that the software you've implemented works on their hardware.
+This role will contribute to both commercial and US Government programs.
+Role
+Develop Software for the Flight Computer / Earth Stations Hub for our Satellites
+Develop Firmware for control boards on the satellite/ Earth Stations Hub
+Improve and deliver reliable software through requirements generation, Design continuous integration, automated testing and code reviews
+Collaborate with multiple teams (Payload, Communications Ground Control, Telemetry)
+Develop software in C++ to interface with Flight computer and interface with the custom hardware on the vehicle
+Deliver complex projects through incremental development
+Requirements
+2-4+ years of experience developing software for products in modern C++ or C
+Familiarity with Software Development Methodologies and Design Patterns
+Experience with working on Communication Protocols (TCP/IP, I2C, SPI)
+Good Communication and Written Skills
+Passionate about Space Technology
+Experience with Building High Availability/High Reliability systems.
+Bonus
+Experience with Python
+Experience with embedded Linux / POSIX systems
+Experience developing on and for VxWorks, Linux, FreeRTOS, or QNX Environments
+Demonstrated experience building, testing, and shipping production software
+Experience with safety critical development (FDA, FAA, Automotive)
+Experience Board Bringup, debugging / Integration of Hardware Software
+What we offer:
+All our positions offer a compensation package that includes equity and robust benefits.
+Base pay is just one component of Astranis’s total rewards package. Your compensation also includes a significant equity package via incentive stock options, high-quality company-subsidized healthcare, disability and life insurance, 401(k) retirement planning, flexible PTO, and free on-site catered meals.
+Astranis pay ranges are informed and defined through professional-grade salary surveys and compensation data sources. The actual base salary offered to a successful candidate will additionally be influenced by a variety of factors including experience, credentials & certifications, educational attainment, skill level requirements, and the level and scope of the position.
+Base Salary
+$130,000
+-
+$175,000
+USD
+U.S. Citizenship, Lawful Permanent Residency, or Refugee/Asylee Status Required
+(To comply with U.S. Government space technology export regulations, applicant must be a U.S. citizen, lawful permanent resident of the United States, or other protected individual as defined by 8 U.S.C. 1324b(a)(3))
+Our mission and products are built for everyone, regardless of gender, race, creed, or background. We believe in a diverse and inclusive workplace, and we invite all people to join our team and bring their unique perspectives to make us stronger.

@@ -4,6 +4,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from copy import deepcopy
+from urllib.parse import urlparse
 from url_utils import (
     validate_url,
     normalize_url,
@@ -17,6 +18,160 @@ HEADERS = {
     )
 }
     
+def is_green_house_url(url):
+    hostname = urlparse(url).hostname or ""
+    
+    return hostname.lower() in {
+        "job-boards.greenhouse.io",
+        "boards.greenhouse.io",
+    }
+    
+def extract_greenhouse_company(soup):
+    if not soup.title:
+        return ""
+    
+    title = clean_text(
+        soup.title.get_text(
+            " ",
+            strip=True
+        )
+    )
+    
+    marker = " at "
+    
+    if marker in title:
+        return title.rsplit(
+            marker,
+            1
+        )[1].strip()
+        
+    return ""
+
+def extract_greenhouse_role(soup):
+    h1 = soup.find("h1")
+    
+    if not h1:
+        return ""
+    
+    role = clean_text(
+        h1.get_text(
+            " ",
+            strip=True
+        )
+    )
+    
+    if len(role) > 200:
+        return ""
+    
+    return role
+
+def extract_greenhouse_location(soup):
+    selectors = [
+        ".location",
+        "[class*='location']",
+    ]
+    
+    for selector in selectors:
+        elements = soup.select(selector)
+        
+        for element in elements:
+            text = clean_text(
+                element.get_text(
+                    " ",
+                    strip=True
+                )
+            )
+            
+            if (
+                text
+                and len(text) <= 100
+            ):
+                return text
+    
+    return ""
+
+def trim_greenhouse_description(text):
+    stop_markers = [
+        "\nSMS Terms of Service",
+        "\nCreate a Job Alert",
+        "\nApply for this job",
+        "\nVoluntary Self-Identification",
+    ]
+    
+    end = len(text)
+    
+    for marker in stop_markers:
+        index = text.find(marker)
+        
+        if index != -1:
+            end = min(end, index)
+    
+    return text[:end].strip()
+        
+        
+def extract_greenhouse_description(soup):
+    selectors = [
+        "#content",
+        ".job__description",
+        ".job-description",
+        "[class*='job-description']",
+    ]
+    
+    for selector in selectors:
+        elements = soup.select(selector)
+        
+        for element in elements:
+            text = element.get_text(
+                separator="\n",
+                strip=True
+            )
+            
+            text = clean_description(text)
+            
+            if is_valid_description(text):
+                return trim_greenhouse_description(text)
+    
+    return ""
+
+def extract_greenhouse_job(soup, url):
+    company = extract_greenhouse_company(soup)
+    role = extract_greenhouse_role(soup)
+    location = extract_greenhouse_location(soup)
+    description = extract_greenhouse_description(soup)
+    
+    if not role:
+        raise ValueError("Could not extract Greenhouse title.")
+
+    if not description:
+        raise ValueError("Could not extract Greenhouse job description.")
+    
+    return {
+        "company": company,
+        "role": role,
+        "location": location,
+        "description": description,
+        "url": url,
+        "extraction_method": "greenhouse",
+    }
+
+def print_debug_info(html, soup):
+    print("\n---DEBUG ---")
+    print(f"HTML size: {len(html)} bytes")
+    print("JSON-LD blocks:", len(soup.find_all("script", type="application/ld+json")) )
+
+    print(
+        "Page title:",
+        soup.title.get_text(" ", strip=True)
+        if soup.title
+        else None
+    )
+    
+    print(
+        "H1:",
+        soup.h1.get_text(" ", strip=True)
+        if soup.h1
+        else None
+    )
 
 def extract_html_fallback(soup, url):
     company = extract_description_from_html(soup)
@@ -115,7 +270,10 @@ def fetch_page(url):
     return response.text, final_url
 
 def clean_html(html):
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(
+        html,
+        "html.parser"
+    )
     
     return soup.get_text(
         separator="\n",
@@ -227,7 +385,10 @@ def extract_description_from_html(soup):
         element = deepcopy(element)
         remove_page_noise(element)
         
-        text = element.get_text("separator=\n",strip=True)
+        text = element.get_text(
+            separator="\n",
+            strip=True
+        )
         text = clean_description(text)
         
         if is_valid_description(text):
@@ -322,6 +483,18 @@ def extract_job_from_url(url):
     html, final_url = fetch_page(original_url)
     normalized_url = normalize_url(final_url)
     soup = BeautifulSoup(html, "html.parser")
+    
+    ''' For Debugging '''
+    print_debug_info(html, soup)
+    
+    if is_green_house_url(final_url):
+        job = extract_greenhouse_job(soup, normalized_url)
+        
+        job["original_url"] = original_url
+        job["final_url"] = final_url
+        
+        return job
+    
     posting = extract_json_ld(soup)
     
     # Preferred method
@@ -377,7 +550,7 @@ if __name__ == "__main__":
     
     print(f"Original URL: {job['original_url']}")
     print(f"Final URL: {job['final_url']}")
-    print(f"Normal URL: {job['url']}")
+    print(f"Normalized URL: {job['url']}")
     
     
     print("\nDescription: \n")

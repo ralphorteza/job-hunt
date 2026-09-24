@@ -1208,7 +1208,9 @@ if __name__ == "__main__":
             role,
             url
     ):
+        # print("\nJob already exists in jobs.csv score_job.py")
         print("\nJob already exists in jobs.csv")
+        
     else:
         save_job(
             csv_filename,
@@ -1228,5 +1230,5 @@ if __name__ == "__main__":
             filename
         )
 
-        print("\nJob saved to jobs.csv")
+        # print("\nJob saved to jobs.csv")
                 

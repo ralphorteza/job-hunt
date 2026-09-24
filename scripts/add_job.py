@@ -5,7 +5,6 @@ from job_url import extract_job_from_url
 from score_job import(
     process_job,
     job_exists,
-    processed_job_exists,
     save_processed_job,
 )
 
@@ -13,10 +12,18 @@ def make_filename(company, role):
     name = f"{company}_{role}".lower()
     
     # Replace non-alphanumeric characters with underscores.
-    name = re.sub(r"[^a-z0-9]+", "_", name)
+    name = re.sub(
+        r"[^a-z0-9]+",
+        "_",
+        name
+    )
     
     # Remove leading/trailing underscores.
     name = name.strip("_")
+    name = name[:150].rstrip("_")
+    
+    if not name:
+        name = "job"
     
     return f"{name}.txt"
 
@@ -137,6 +144,7 @@ def main():
         role = imported["role"]
         location = imported["location"]
         description = imported["description"]
+        url = imported["url"]
     elif choice == "2":        
         company = read_required(
             "Company: "
@@ -157,6 +165,7 @@ def main():
         description = reading_description()
     else:
         print("Invalid selection.")
+        return
     
     if not company:
         company = read_required("Company could not be detected. Company: ")
@@ -186,6 +195,7 @@ def main():
     ):
         print()
         print("Job already exists in jobs.csv")
+        # print("Job already exists in jobs.csv add_job.py 1")
         return
     
     path = save_description(
@@ -202,7 +212,6 @@ def main():
     
     try:
         job = process_job(path)
-        save_processed_job(job)
     except (ValueError, OSError) as error:
         print(f"Error scoring job: {error}")
         return
@@ -231,12 +240,11 @@ def main():
             f"Preferred match: {preferred:.0f}%"
         )
         
-    if processed_job_exists(job):
-        print()
-        print("Job already exists in jobs.csv")
+    try:
+        save_processed_job(job)
+    except (ValueError, OSError) as error:
+        print(f"Error saving job: {error}")
         return
-    
-    print("Job added to jobs.csv")
     
 if __name__ == "__main__":
     main()

@@ -1,0 +1,517 @@
+~
+https://job-boards.greenhouse.io/doordashusa/jobs/8122134
+
+https://jobs.lever.co/afero/ade6ac1b-b574-48b6-a771-77f242825f7a
+https://jobs.lever.co/aquabyte/ecff34ad-d659-4da1-af8d-0266103ba9bf
+
+https://analogdevices.wd1.myworkdayjobs.com/External/job/US-MA-Wilmington/Associate-Embedded-Software-Engineer_R266131?source=LinkedIn
+https://generalmotors.wd5.myworkdayjobs.com/Careers_GM/job/Sunnyvale-California-United-States-of-America/Embedded-Software-Engineer_JR-202617527?source=LinkedIn
+https://cadence.wd1.myworkdayjobs.com/External_Careers/job/SAN-JOSE/Software-Engineer-II_R51635-1?source=LinkedIn
+
+
+(.venv) ralphorteza@laptop-ralph:~/repos/job-hunt$ python3 scripts/add_job.py 
+==================================================
+ADD JOB
+==================================================
+
+1. Import from URL
+2. Paste Manually
+
+Choose method [1/2]: 1
+Job URL: https://job-boards.greenhouse.io/astranis/jobs/4363202006?gh_src=602966e76us
+
+---DEBUG ---
+HTML size: 95244 bytes
+JSON-LD blocks: 0
+Page title: Job Application for Embedded Software Engineer - Network Software at Astranis
+H1: Embedded Software Engineer - Network Software
+
+Detected job:
+  Company:  Embedded Software Engineer - Network Software
+San Francisco
+Apply
+Astranis builds advanced satellites for high orbits, expanding humanity’s reach into the solar system. Today, Astranis satellites provide dedicated, secure networks to highly-sophisticated customers across the globe— large enterprises, sovereign governments, and the US military. With five satellites on orbit and many more set to launch soon, the company is servicing a backlog of more than $1 billion of commercial contracts.
+Astranis is the preferred satellite communications partner for buyers with stringent requirements for uptime, data security, network visibility, and customization. Astranis has raised over $750 million from some of the world’s best investors, from Andreessen Horowitz to Blackrock and Fidelity, and employs a team of 450 engineers and entrepreneurs. Astranis designs, builds, and operates its satellites out of its 153,000 sq. ft. headquarters in Northern California, USA.
+Embedded Software Engineer - Network Software
+As a Embedded Software Engineer on the Network Software team at Astranis, you will be responsible for assisting with architecture, high level design choices, development, execution, and implementation of the flight software that commands and monitors the spacecraft. Additionally, you will mentor junior members and collaborate with other teams to ensure that the software you've implemented works on their hardware.
+This role will contribute to both commercial and US Government programs.
+Role
+Develop Software for the Flight Computer / Earth Stations Hub for our Satellites
+Develop Firmware for control boards on the satellite/ Earth Stations Hub
+Improve and deliver reliable software through requirements generation, Design continuous integration, automated testing and code reviews
+Collaborate with multiple teams (Payload, Communications Ground Control, Telemetry)
+Develop software in C++ to interface with Flight computer and interface with the custom hardware on the vehicle
+Deliver complex projects through incremental development
+Requirements
+2-4+ years of experience developing software for products in modern C++ or C
+Familiarity with Software Development Methodologies and Design Patterns
+Experience with working on Communication Protocols (TCP/IP, I2C, SPI)
+Good Communication and Written Skills
+Passionate about Space Technology
+Experience with Building High Availability/High Reliability systems.
+Bonus
+Experience with Python
+Experience with embedded Linux / POSIX systems
+Experience developing on and for VxWorks, Linux, FreeRTOS, or QNX Environments
+Demonstrated experience building, testing, and shipping production software
+Experience with safety critical development (FDA, FAA, Automotive)
+Experience Board Bringup, debugging / Integration of Hardware Software
+What we offer:
+All our positions offer a compensation package that includes equity and robust benefits.
+Base pay is just one component of Astranis’s total rewards package. Your compensation also includes a significant equity package via incentive stock options, high-quality company-subsidized healthcare, disability and life insurance, 401(k) retirement planning, flexible PTO, and free on-site catered meals.
+Astranis pay ranges are informed and defined through professional-grade salary surveys and compensation data sources. The actual base salary offered to a successful candidate will additionally be influenced by a variety of factors including experience, credentials & certifications, educational attainment, skill level requirements, and the level and scope of the position.
+Base Salary
+$130,000
+-
+$175,000
+USD
+U.S. Citizenship, Lawful Permanent Residency, or Refugee/Asylee Status Required
+(To comply with U.S. Government space technology export regulations, applicant must be a U.S. citizen, lawful permanent resident of the United States, or other protected individual as defined by 8 U.S.C. 1324b(a)(3))
+Our mission and products are built for everyone, regardless of gender, race, creed, or background. We believe in a diverse and inclusive workplace, and we invite all people to join our team and bring their unique perspectives to make us stronger.
+SMS Terms of Service
+1. When you opt in to receive SMS messages from
+Astranis Space Technologies Corp.
+, we may send you messages related to your job application, including updates, interview coordination, and other recruiting communications.
+2. You can cancel the SMS service at any time by replying with any of the following industry standard keywords:
+a. STOP
+b. STOPALL
+c. OPTOUT
+d. CANCEL
+e. END
+f. QUIT
+g. UNSUBSCRIBE
+h. REVOKE
+3. After you opt out, we may send one final text message confirming that you have been unsubscribed. No further recruiting SMS messages will be sent unless you opt in again.
+4. To opt back in, reply with any of the following industry standard keywords:
+a. START
+b. UNSTOP
+c. YES
+5. For help, reply HELP or contact us at EMAIL or PHONE NUMBER.
+6. Carriers are not liable for delayed or undelivered messages.
+7. Message and data rates may apply. Message frequency may vary. Contact your wireless provider for details.
+8. For more information on how we handle your data, please review our Privacy Policy at:
+https://www.astranis.com/legal/privacy
+.
+Create a Job Alert
+Interested in building your career at Astranis? Get future opportunities sent straight to your email.
+Create alert
+Apply for this job
+*
+indicates a required field
+Autofill my application
+First Name
+*
+Last Name
+*
+Email
+*
+Phone
+Country
+*
+Phone
+*
+Location (City)
+*
+Locate me
+Resume/CV
+*
+Attach
+Attach
+Dropbox
+Google Drive
+Enter manually
+Enter manually
+Accepted file types: pdf, doc, docx, txt, rtf
+Education
+School
+Select...
+Degree
+Select...
+Discipline
+Select...
+Start date month
+Select...
+Start date year
+End date month
+Select...
+End date year
+Add another
+Astranis complies with U.S. Government space technology export regulations, therefore will you state which of the following applies to you:
+*
+Select...
+What is the most impressive thing you have ever accomplished?
+*
+At Astranis, we value in-person collaboration and a strong work ethic. Are you comfortable with working onsite at our San Francisco HQ 5 days a week?
+*
+Select...
+How did you hear about Astranis?
+*
+LinkedIn Profile
+By selecting YES, I consent to receive recruiting SMS messages from Astranis at the phone number provided on my job application.
+*
+Select...
+While a security clearance is not required, please let us know if you currently hold one or would be open to obtaining one:
+*
+Top Secret SCI with Polygraph
+Top Secret SCI/SAP
+Top Secret
+DOE level Q
+Secret
+Expired Clearance
+Open to obtaining
+Never held a clearance
+Do not wish to disclose
+Voluntary Self-Identification
+For government reporting purposes, we ask candidates to respond to the below self-identification survey.
+Completion of the form is entirely voluntary. Whatever your decision, it will not be considered in the hiring
+process or thereafter. Any information that you do provide will be recorded and maintained in a
+confidential file.
+As set forth in Astranis’s Equal Employment Opportunity policy,
+we do not discriminate on the basis of any protected group status under any applicable law.
+Gender
+Select...
+Are you Hispanic/Latino?
+Select...
+Race & Ethnicity Definitions
+If you believe you belong to any of the categories of protected veterans listed below, please indicate by making the appropriate selection.
+As a government contractor subject to the Vietnam Era Veterans Readjustment Assistance Act (VEVRAA), we request this information in order to measure
+the effectiveness of the outreach and positive recruitment efforts we undertake pursuant to VEVRAA. Classification of protected categories
+is as follows:
+A "disabled veteran" is one of the following: a veteran of the U.S. military, ground, naval or air service who is entitled to compensation (or who but for the receipt of military retired pay would be entitled to compensation) under laws administered by the Secretary of Veterans Affairs; or a person who was discharged or released from active duty because of a service-connected disability.
+A "recently separated veteran" means any veteran during the three-year period beginning on the date of such veteran's discharge or release from active duty in the U.S. military, ground, naval, or air service.
+An "active duty wartime or campaign badge veteran" means a veteran who served on active duty in the U.S. military, ground, naval or air service during a war, or in a campaign or expedition for which a campaign badge has been authorized under the laws administered by the Department of Defense.
+An "Armed forces service medal veteran" means a veteran who, while serving on active duty in the U.S. military, ground, naval or air service, participated in a United States military operation for which an Armed Forces service medal was awarded pursuant to Executive Order 12985.
+Veteran Status
+Select...
+Submit application
+  Role:     Embedded Software Engineer - Network Software
+San Francisco
+Apply
+Astranis builds advanced satellites for high orbits, expanding humanity’s reach into the solar system. Today, Astranis satellites provide dedicated, secure networks to highly-sophisticated customers across the globe— large enterprises, sovereign governments, and the US military. With five satellites on orbit and many more set to launch soon, the company is servicing a backlog of more than $1 billion of commercial contracts.
+Astranis is the preferred satellite communications partner for buyers with stringent requirements for uptime, data security, network visibility, and customization. Astranis has raised over $750 million from some of the world’s best investors, from Andreessen Horowitz to Blackrock and Fidelity, and employs a team of 450 engineers and entrepreneurs. Astranis designs, builds, and operates its satellites out of its 153,000 sq. ft. headquarters in Northern California, USA.
+Embedded Software Engineer - Network Software
+As a Embedded Software Engineer on the Network Software team at Astranis, you will be responsible for assisting with architecture, high level design choices, development, execution, and implementation of the flight software that commands and monitors the spacecraft. Additionally, you will mentor junior members and collaborate with other teams to ensure that the software you've implemented works on their hardware.
+This role will contribute to both commercial and US Government programs.
+Role
+Develop Software for the Flight Computer / Earth Stations Hub for our Satellites
+Develop Firmware for control boards on the satellite/ Earth Stations Hub
+Improve and deliver reliable software through requirements generation, Design continuous integration, automated testing and code reviews
+Collaborate with multiple teams (Payload, Communications Ground Control, Telemetry)
+Develop software in C++ to interface with Flight computer and interface with the custom hardware on the vehicle
+Deliver complex projects through incremental development
+Requirements
+2-4+ years of experience developing software for products in modern C++ or C
+Familiarity with Software Development Methodologies and Design Patterns
+Experience with working on Communication Protocols (TCP/IP, I2C, SPI)
+Good Communication and Written Skills
+Passionate about Space Technology
+Experience with Building High Availability/High Reliability systems.
+Bonus
+Experience with Python
+Experience with embedded Linux / POSIX systems
+Experience developing on and for VxWorks, Linux, FreeRTOS, or QNX Environments
+Demonstrated experience building, testing, and shipping production software
+Experience with safety critical development (FDA, FAA, Automotive)
+Experience Board Bringup, debugging / Integration of Hardware Software
+What we offer:
+All our positions offer a compensation package that includes equity and robust benefits.
+Base pay is just one component of Astranis’s total rewards package. Your compensation also includes a significant equity package via incentive stock options, high-quality company-subsidized healthcare, disability and life insurance, 401(k) retirement planning, flexible PTO, and free on-site catered meals.
+Astranis pay ranges are informed and defined through professional-grade salary surveys and compensation data sources. The actual base salary offered to a successful candidate will additionally be influenced by a variety of factors including experience, credentials & certifications, educational attainment, skill level requirements, and the level and scope of the position.
+Base Salary
+$130,000
+-
+$175,000
+USD
+U.S. Citizenship, Lawful Permanent Residency, or Refugee/Asylee Status Required
+(To comply with U.S. Government space technology export regulations, applicant must be a U.S. citizen, lawful permanent resident of the United States, or other protected individual as defined by 8 U.S.C. 1324b(a)(3))
+Our mission and products are built for everyone, regardless of gender, race, creed, or background. We believe in a diverse and inclusive workplace, and we invite all people to join our team and bring their unique perspectives to make us stronger.
+SMS Terms of Service
+1. When you opt in to receive SMS messages from
+Astranis Space Technologies Corp.
+, we may send you messages related to your job application, including updates, interview coordination, and other recruiting communications.
+2. You can cancel the SMS service at any time by replying with any of the following industry standard keywords:
+a. STOP
+b. STOPALL
+c. OPTOUT
+d. CANCEL
+e. END
+f. QUIT
+g. UNSUBSCRIBE
+h. REVOKE
+3. After you opt out, we may send one final text message confirming that you have been unsubscribed. No further recruiting SMS messages will be sent unless you opt in again.
+4. To opt back in, reply with any of the following industry standard keywords:
+a. START
+b. UNSTOP
+c. YES
+5. For help, reply HELP or contact us at EMAIL or PHONE NUMBER.
+6. Carriers are not liable for delayed or undelivered messages.
+7. Message and data rates may apply. Message frequency may vary. Contact your wireless provider for details.
+8. For more information on how we handle your data, please review our Privacy Policy at:
+https://www.astranis.com/legal/privacy
+.
+Create a Job Alert
+Interested in building your career at Astranis? Get future opportunities sent straight to your email.
+Create alert
+Apply for this job
+*
+indicates a required field
+Autofill my application
+First Name
+*
+Last Name
+*
+Email
+*
+Phone
+Country
+*
+Phone
+*
+Location (City)
+*
+Locate me
+Resume/CV
+*
+Attach
+Attach
+Dropbox
+Google Drive
+Enter manually
+Enter manually
+Accepted file types: pdf, doc, docx, txt, rtf
+Education
+School
+Select...
+Degree
+Select...
+Discipline
+Select...
+Start date month
+Select...
+Start date year
+End date month
+Select...
+End date year
+Add another
+Astranis complies with U.S. Government space technology export regulations, therefore will you state which of the following applies to you:
+*
+Select...
+What is the most impressive thing you have ever accomplished?
+*
+At Astranis, we value in-person collaboration and a strong work ethic. Are you comfortable with working onsite at our San Francisco HQ 5 days a week?
+*
+Select...
+How did you hear about Astranis?
+*
+LinkedIn Profile
+By selecting YES, I consent to receive recruiting SMS messages from Astranis at the phone number provided on my job application.
+*
+Select...
+While a security clearance is not required, please let us know if you currently hold one or would be open to obtaining one:
+*
+Top Secret SCI with Polygraph
+Top Secret SCI/SAP
+Top Secret
+DOE level Q
+Secret
+Expired Clearance
+Open to obtaining
+Never held a clearance
+Do not wish to disclose
+Voluntary Self-Identification
+For government reporting purposes, we ask candidates to respond to the below self-identification survey.
+Completion of the form is entirely voluntary. Whatever your decision, it will not be considered in the hiring
+process or thereafter. Any information that you do provide will be recorded and maintained in a
+confidential file.
+As set forth in Astranis’s Equal Employment Opportunity policy,
+we do not discriminate on the basis of any protected group status under any applicable law.
+Gender
+Select...
+Are you Hispanic/Latino?
+Select...
+Race & Ethnicity Definitions
+If you believe you belong to any of the categories of protected veterans listed below, please indicate by making the appropriate selection.
+As a government contractor subject to the Vietnam Era Veterans Readjustment Assistance Act (VEVRAA), we request this information in order to measure
+the effectiveness of the outreach and positive recruitment efforts we undertake pursuant to VEVRAA. Classification of protected categories
+is as follows:
+A "disabled veteran" is one of the following: a veteran of the U.S. military, ground, naval or air service who is entitled to compensation (or who but for the receipt of military retired pay would be entitled to compensation) under laws administered by the Secretary of Veterans Affairs; or a person who was discharged or released from active duty because of a service-connected disability.
+A "recently separated veteran" means any veteran during the three-year period beginning on the date of such veteran's discharge or release from active duty in the U.S. military, ground, naval, or air service.
+An "active duty wartime or campaign badge veteran" means a veteran who served on active duty in the U.S. military, ground, naval or air service during a war, or in a campaign or expedition for which a campaign badge has been authorized under the laws administered by the Department of Defense.
+An "Armed forces service medal veteran" means a veteran who, while serving on active duty in the U.S. military, ground, naval or air service, participated in a United States military operation for which an Armed Forces service medal was awarded pursuant to Executive Order 12985.
+Veteran Status
+Select...
+Submit application
+  Location: Embedded Software Engineer - Network Software
+San Francisco
+Apply
+Astranis builds advanced satellites for high orbits, expanding humanity’s reach into the solar system. Today, Astranis satellites provide dedicated, secure networks to highly-sophisticated customers across the globe— large enterprises, sovereign governments, and the US military. With five satellites on orbit and many more set to launch soon, the company is servicing a backlog of more than $1 billion of commercial contracts.
+Astranis is the preferred satellite communications partner for buyers with stringent requirements for uptime, data security, network visibility, and customization. Astranis has raised over $750 million from some of the world’s best investors, from Andreessen Horowitz to Blackrock and Fidelity, and employs a team of 450 engineers and entrepreneurs. Astranis designs, builds, and operates its satellites out of its 153,000 sq. ft. headquarters in Northern California, USA.
+Embedded Software Engineer - Network Software
+As a Embedded Software Engineer on the Network Software team at Astranis, you will be responsible for assisting with architecture, high level design choices, development, execution, and implementation of the flight software that commands and monitors the spacecraft. Additionally, you will mentor junior members and collaborate with other teams to ensure that the software you've implemented works on their hardware.
+This role will contribute to both commercial and US Government programs.
+Role
+Develop Software for the Flight Computer / Earth Stations Hub for our Satellites
+Develop Firmware for control boards on the satellite/ Earth Stations Hub
+Improve and deliver reliable software through requirements generation, Design continuous integration, automated testing and code reviews
+Collaborate with multiple teams (Payload, Communications Ground Control, Telemetry)
+Develop software in C++ to interface with Flight computer and interface with the custom hardware on the vehicle
+Deliver complex projects through incremental development
+Requirements
+2-4+ years of experience developing software for products in modern C++ or C
+Familiarity with Software Development Methodologies and Design Patterns
+Experience with working on Communication Protocols (TCP/IP, I2C, SPI)
+Good Communication and Written Skills
+Passionate about Space Technology
+Experience with Building High Availability/High Reliability systems.
+Bonus
+Experience with Python
+Experience with embedded Linux / POSIX systems
+Experience developing on and for VxWorks, Linux, FreeRTOS, or QNX Environments
+Demonstrated experience building, testing, and shipping production software
+Experience with safety critical development (FDA, FAA, Automotive)
+Experience Board Bringup, debugging / Integration of Hardware Software
+What we offer:
+All our positions offer a compensation package that includes equity and robust benefits.
+Base pay is just one component of Astranis’s total rewards package. Your compensation also includes a significant equity package via incentive stock options, high-quality company-subsidized healthcare, disability and life insurance, 401(k) retirement planning, flexible PTO, and free on-site catered meals.
+Astranis pay ranges are informed and defined through professional-grade salary surveys and compensation data sources. The actual base salary offered to a successful candidate will additionally be influenced by a variety of factors including experience, credentials & certifications, educational attainment, skill level requirements, and the level and scope of the position.
+Base Salary
+$130,000
+-
+$175,000
+USD
+U.S. Citizenship, Lawful Permanent Residency, or Refugee/Asylee Status Required
+(To comply with U.S. Government space technology export regulations, applicant must be a U.S. citizen, lawful permanent resident of the United States, or other protected individual as defined by 8 U.S.C. 1324b(a)(3))
+Our mission and products are built for everyone, regardless of gender, race, creed, or background. We believe in a diverse and inclusive workplace, and we invite all people to join our team and bring their unique perspectives to make us stronger.
+SMS Terms of Service
+1. When you opt in to receive SMS messages from
+Astranis Space Technologies Corp.
+, we may send you messages related to your job application, including updates, interview coordination, and other recruiting communications.
+2. You can cancel the SMS service at any time by replying with any of the following industry standard keywords:
+a. STOP
+b. STOPALL
+c. OPTOUT
+d. CANCEL
+e. END
+f. QUIT
+g. UNSUBSCRIBE
+h. REVOKE
+3. After you opt out, we may send one final text message confirming that you have been unsubscribed. No further recruiting SMS messages will be sent unless you opt in again.
+4. To opt back in, reply with any of the following industry standard keywords:
+a. START
+b. UNSTOP
+c. YES
+5. For help, reply HELP or contact us at EMAIL or PHONE NUMBER.
+6. Carriers are not liable for delayed or undelivered messages.
+7. Message and data rates may apply. Message frequency may vary. Contact your wireless provider for details.
+8. For more information on how we handle your data, please review our Privacy Policy at:
+https://www.astranis.com/legal/privacy
+.
+Create a Job Alert
+Interested in building your career at Astranis? Get future opportunities sent straight to your email.
+Create alert
+Apply for this job
+*
+indicates a required field
+Autofill my application
+First Name
+*
+Last Name
+*
+Email
+*
+Phone
+Country
+*
+Phone
+*
+Location (City)
+*
+Locate me
+Resume/CV
+*
+Attach
+Attach
+Dropbox
+Google Drive
+Enter manually
+Enter manually
+Accepted file types: pdf, doc, docx, txt, rtf
+Education
+School
+Select...
+Degree
+Select...
+Discipline
+Select...
+Start date month
+Select...
+Start date year
+End date month
+Select...
+End date year
+Add another
+Astranis complies with U.S. Government space technology export regulations, therefore will you state which of the following applies to you:
+*
+Select...
+What is the most impressive thing you have ever accomplished?
+*
+At Astranis, we value in-person collaboration and a strong work ethic. Are you comfortable with working onsite at our San Francisco HQ 5 days a week?
+*
+Select...
+How did you hear about Astranis?
+*
+LinkedIn Profile
+By selecting YES, I consent to receive recruiting SMS messages from Astranis at the phone number provided on my job application.
+*
+Select...
+While a security clearance is not required, please let us know if you currently hold one or would be open to obtaining one:
+*
+Top Secret SCI with Polygraph
+Top Secret SCI/SAP
+Top Secret
+DOE level Q
+Secret
+Expired Clearance
+Open to obtaining
+Never held a clearance
+Do not wish to disclose
+Voluntary Self-Identification
+For government reporting purposes, we ask candidates to respond to the below self-identification survey.
+Completion of the form is entirely voluntary. Whatever your decision, it will not be considered in the hiring
+process or thereafter. Any information that you do provide will be recorded and maintained in a
+confidential file.
+As set forth in Astranis’s Equal Employment Opportunity policy,
+we do not discriminate on the basis of any protected group status under any applicable law.
+Gender
+Select...
+Are you Hispanic/Latino?
+Select...
+Race & Ethnicity Definitions
+If you believe you belong to any of the categories of protected veterans listed below, please indicate by making the appropriate selection.
+As a government contractor subject to the Vietnam Era Veterans Readjustment Assistance Act (VEVRAA), we request this information in order to measure
+the effectiveness of the outreach and positive recruitment efforts we undertake pursuant to VEVRAA. Classification of protected categories
+is as follows:
+A "disabled veteran" is one of the following: a veteran of the U.S. military, ground, naval or air service who is entitled to compensation (or who but for the receipt of military retired pay would be entitled to compensation) under laws administered by the Secretary of Veterans Affairs; or a person who was discharged or released from active duty because of a service-connected disability.
+A "recently separated veteran" means any veteran during the three-year period beginning on the date of such veteran's discharge or release from active duty in the U.S. military, ground, naval, or air service.
+An "active duty wartime or campaign badge veteran" means a veteran who served on active duty in the U.S. military, ground, naval or air service during a war, or in a campaign or expedition for which a campaign badge has been authorized under the laws administered by the Department of Defense.
+An "Armed forces service medal veteran" means a veteran who, while serving on active duty in the U.S. military, ground, naval or air service, participated in a United States military operation for which an Armed Forces service medal was awarded pursuant to Executive Order 12985.
+Veteran Status
+Select...
+Submit application
+  URL:      https://job-boards.greenhouse.io/astranis/jobs/4363202006?gh_src=602966e76us
+
+Saved description: descriptions/embedded_software_engineer_network_software_san_francisco_apply_astranis_builds_advanced_satellites_for_high_orbits_expanding_humanity_s_reach_into_th.txt
+
+Job added to jobs.csv
+
+==================================================
+JOB ANALYSIS
+==================================================
+Track:          embedded
+Track score:    10/10
+Fit score:      5.0/10
+Recommendation: REVIEW
+Priority:       LOW
+Required match: 50%
+
+Job already exists in jobs.csv
