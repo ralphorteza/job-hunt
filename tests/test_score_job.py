@@ -17,6 +17,8 @@ from score_job import (
     process_job,
     extract_experience_requirements,
     count_critical_missing_qualifications,
+    calculate_qualification_match,
+    calculate_experience_qualification_credit,
 )
 
 @pytest.fixture
@@ -506,7 +508,7 @@ Experience with Python
 
     assert job["experience_gap"] == 1
     assert job["experience_gap_severity"] == "small"
-    
+
     experience_qualifications = [
         qualification
         for qualification
@@ -514,19 +516,21 @@ Experience with Python
         + job["required_qualifications_missing"]
         if qualification["type"] == "years_experience"
     ]
-    
+
     assert len(experience_qualifications) == 1
-    
-    experience_requirement = ( experience_qualifications[0] )
-    
+
+    experience_requirement = experience_qualifications[0]
+
     assert experience_requirement["minimum"] == 3
     assert experience_requirement["maximum"] == 5
     assert experience_requirement["domain"] == "embedded"
 
-    assert job["recommendation"] == "REVIEW"
-    assert job["priority"] == "MEDIUM"
+    assert job["required_qualification_percentage"] == 87.5
     assert job["critical_missing_qualifications"] == 0
-    
+
+    assert job["recommendation"] == "APPLY"
+    assert job["priority"] == "MEDIUM"
+
 
 @pytest.mark.parametrize(
     "severity, expected_count",
@@ -586,3 +590,76 @@ def test_missing_degree_remains_critical():
     )
     
     assert result == 1
+    
+    
+@pytest.mark.parametrize(
+    "candidate_years, required_years, expected_credit",
+    [
+        (5, 5, 1.00),
+        (4, 5, 0.75),
+        (2, 5, 0.40),
+        (1, 5, 0.00),
+    ],
+)
+def test_experience_qualification_credit(
+    candidate_years,
+    required_years,
+    expected_credit,
+):
+    qualification = {
+        "type": "years_experience",
+        "value": required_years,
+        "minimum": required_years,
+        "maximum": None,
+        "domain": "embedded",
+        "text": f"{required_years}+ years of experience",
+    }
+    
+    profile = {
+        "experience": {
+            "embedded_years": candidate_years,
+            "software_years": candidate_years,
+        }
+    }
+    
+    credit = calculate_experience_qualification_credit(
+        qualification,
+        profile,
+    )
+    
+    assert credit == expected_credit
+    
+def test_qualification_match_partial_experience_credit():
+    matched = [
+        {
+            "type": "degree",
+            "value": "bachelors",
+            "text": "Bachelor's degree",
+        }
+    ]
+
+    missing = [
+        {
+            "type": "years_experience",
+            "value": 3,
+            "minimum": 3,
+            "maximum": 5,
+            "domain": "embedded",
+            "text": "3-5 years of experience",
+        }
+    ]
+
+    profile = {
+        "experience": {
+            "software_years": 2,
+            "embedded_years": 2,
+        }
+    }
+
+    percentage = calculate_qualification_match(
+        matched,
+        missing,
+        profile,
+    )
+
+    assert percentage == 87.5

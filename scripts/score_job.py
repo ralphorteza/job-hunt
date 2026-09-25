@@ -657,6 +657,49 @@ def extract_job_skills(description):
             
     return job_skills
 
+def calculate_experience_qualification_credit(
+    qualification,
+    profile,
+):
+    domain = qualification.get("domain", "software")
+    
+    if domain == "embedded":
+        candidate_years = profile.get(
+            "experience", {}
+        ).get("embedded_years")
+    else:
+        candidate_years = profile.get(
+            "experience", {}
+        ).get("software_years")
+        
+    if candidate_years is None:
+        return 0.0
+    
+    required_years = qualification.get(
+        "minimum",
+        qualification.get("value"),
+    )
+    
+    if required_years is None:
+        return 0.0
+    
+    gap = max(
+        required_years - candidate_years, 
+        0,
+    )
+    
+    severity = classify_experience_gap(gap)
+    
+    credits = {
+        "none": 1.00,
+        "small": 0.75,
+        "moderate": 0.40,
+        "large": 0.00,
+        "unknown": 0.00,
+    }
+    return credits[severity]
+    
+
 def classify_experience_gap(experience_gap):
     if experience_gap is None:
         return "unknown"
@@ -835,14 +878,48 @@ def compare_profile(job_skills, profile):
     return results
 
 
-def calculate_qualification_match(matched, missing):
-    total = len(matched) + len(missing)
+def calculate_qualification_match(
+    matched,
+    missing,
+    profile=None,
+):
+    qualifications = matched + missing
     
-    if total == 0:
+    if not qualifications:
         return None
     
-    return (len(matched) / total) * 100
-
+    total_credit = 0.0
+    
+    for qualification in qualifications:
+        qualification_type = qualification["type"]
+        
+        if qualification_type == "years_experience":
+            if profile is None:
+                credit = (
+                    1.0
+                    if qualification in matched
+                    else 0.0
+                )
+            else:
+                credit = calculate_experience_qualification_credit(
+                    qualification,
+                    profile,
+                )
+        else:
+            credit = (
+                1.0
+                if qualification in matched
+                else 0.0
+            )
+        total_credit += credit
+        
+    return (
+        total_credit
+        / len(qualifications)
+        * 100
+    )
+    
+    
 
 def calculate_weighted_match(matched, missing, track):
     matched_weight = sum(
@@ -1409,15 +1486,23 @@ def process_job(filename):
         )
     )
 
-    required_qualification_percentage = calculate_qualification_match(
-        qualification_comparison["required_matched"],
-        qualification_comparison["required_missing"],
+    
+    required_qualification_percentage = (
+        calculate_qualification_match(
+            qualification_comparison["required_matched"],
+            qualification_comparison["required_missing"],
+            profile,
+        )
+    )
+    
+    preferred_qualification_percentage = (
+        calculate_qualification_match(
+            qualification_comparison["preferred_matched"],
+            qualification_comparison["preferred_missing"],
+            profile,
+        )
     )
 
-    preferred_qualification_percentage = calculate_qualification_match(
-        qualification_comparison["preferred_matched"],
-        qualification_comparison["preferred_missing"],
-    )
     skill_fit_score = calculate_fit_score(comparison, resume)
     
     fit_score = calculate_overall_fit(
