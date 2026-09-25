@@ -16,6 +16,7 @@ from score_job import (
     calculate_priority,
     process_job,
     extract_experience_requirements,
+    count_critical_missing_qualifications,
 )
 
 @pytest.fixture
@@ -358,7 +359,6 @@ Experience with Python
     assert job["priority"] == "MEDIUM"
     
     
-    
 @pytest.mark.parametrize(
     (
         "text",
@@ -525,3 +525,64 @@ Experience with Python
 
     assert job["recommendation"] == "REVIEW"
     assert job["priority"] == "MEDIUM"
+    assert job["critical_missing_qualifications"] == 0
+    
+
+@pytest.mark.parametrize(
+    "severity, expected_count",
+    [
+        ("none", 0),
+        ("small", 0),
+        ("moderate", 0),
+        ("large", 1),
+        ("unknown", 0),
+    ],
+)
+def test_experience_requirement_criticality(
+    severity,
+    expected_count,
+):
+    comparison = {
+        "required_matched": [],
+        "required_missing": [
+            {
+                "type": "years_experience",
+                "value": 5,
+                "minimum": 5,
+                "maximum": None,
+                "domain": "embedded",
+                "text": "5+ years of experience",
+            }
+        ],
+        "preferred_matched": [],
+        "preferred_missing": []
+    }
+    
+    result = count_critical_missing_qualifications(
+        comparison,
+        severity,
+    )
+    
+    assert result == expected_count
+    
+    
+def test_missing_degree_remains_critical():
+    comparison = {
+        "required_matched": [],
+        "required_missing": [
+            {
+                "type": "degree",
+                "value": "bachelors",
+                "text": "Bachelor's degree",
+            }
+        ],
+        "preferred_matched": [],
+        "preferred_missing": [],
+    }
+    
+    result = count_critical_missing_qualifications(
+        comparison,
+        "none"
+    )
+    
+    assert result == 1

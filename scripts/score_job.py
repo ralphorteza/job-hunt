@@ -316,18 +316,28 @@ def build_skill_warnings(comparison, track):
             
     return warnings
 
-def count_critical_missing_qualifications(qualification_comparison):
-    critical_types = {
-        "degree",
-        "years_experience",
-    }
+def count_critical_missing_qualifications(
+    qualification_comparison,
+    experience_gap_severity="unknown",
+):
+    critical_count = 0
     
-    return sum(
-        1
-        for qualification
-        in qualification_comparison["required_missing"]
-        if qualification["type"] in critical_types
-    )
+    for qualification in qualification_comparison["required_missing"]:
+        qualification_type = qualification["type"]
+        
+        # Experience requirements have their own severity model.
+        # Only a large experience gap counts as critical.
+        if qualification_type == "years_experience":
+            if experience_gap_severity == "large":
+                critical_count += 1
+                
+            continue
+        
+        # A missing required degree is critical.
+        if qualification_type == "degree":
+            critical_count += 1
+            
+    return critical_count
 
 def recommend_application(
     fit_score,
@@ -1393,7 +1403,10 @@ def process_job(filename):
     experience_gap_severity = classify_experience_gap(experience_gap)
     
     critical_missing_qualifications = (
-        count_critical_missing_qualifications(qualification_comparison)
+        count_critical_missing_qualifications(
+            qualification_comparison,
+            experience_gap_severity,
+        )
     )
 
     required_qualification_percentage = calculate_qualification_match(
