@@ -445,6 +445,34 @@ def calculate_priority(
 
     return "LOW"
 
+def get_candidate_experience_years(profile, domain):
+    experience = profile.get("experience", {})
+    
+    if domain == "embedded":
+        return experience.get(
+            "embedded_years",
+            experience.get("software_years", 0)
+        )
+    
+    return experience.get("software_years", 0)
+
+def detect_experience_domain(text):
+    text = text.lower()
+    
+    embedded_patterns = [
+        r"\bembedded\b",
+        r"\bfirmware\b",
+        r"\bmicrocontroller\b",
+        r"\breal[\s-]+time\b",
+    ]
+    
+    for pattern in embedded_patterns:
+        if re.search(pattern, text):
+            return "embedded"
+        
+    return "software"
+
+
 def extract_qualifications(description):
     sections = split_job_sections(description)
 
@@ -458,16 +486,20 @@ def extract_qualifications(description):
 
         # Years of experience
         year_matches = re.finditer(
-            r"(\d+)\s*\+?\s*years?\s+of\s+experience",
+            r"(\d+)\s*\+?\s*years?\s+of\s+experience"
+            r"(?P<context>.{0,100})",
             text,
             re.IGNORECASE
         )
 
         for match in year_matches:
+            context = match.group(0)
+
             qualifications[section_name].append({
                 "type": "years_experience",
                 "value": int(match.group(1)),
-                "text": match.group(0),
+                "domain": detect_experience_domain(context),
+                "text": match.group(0).strip(),
             })
 
         # Bachelor's degree
@@ -541,31 +573,47 @@ def classify_experience_gap(experience_gap):
     
     return "large"
 
-def calculate_experience_gap(qualification_comparison, profile,):
-    candidate_years = profile.get(
-        "experience", {}
-    ).get("software_years")
-    
-    if candidate_years is None:
-        return None
-    
+def calculate_experience_gap(
+    qualification_comparison,
+    profile,
+):
     required_qualifications = (
         qualification_comparison["required_matched"]
         + qualification_comparison["required_missing"]
     )
-    
-    required_years = [
-        qualification["value"]
-        for qualification in required_qualifications
-        if qualification["type"] == "years_experience"
-    ]
-    
-    if not required_years:
+
+    experience_gaps = []
+
+    for qualification in required_qualifications:
+        if qualification["type"] != "years_experience":
+            continue
+
+        required_years = qualification["value"]
+
+        domain = qualification.get(
+            "domain",
+            "software"
+        )
+
+        candidate_years = get_candidate_experience_years(
+            profile,
+            domain
+        )
+
+        if candidate_years is None:
+            continue
+
+        gap = max(
+            required_years - candidate_years,
+            0
+        )
+
+        experience_gaps.append(gap)
+
+    if not experience_gaps:
         return None
-    
-    required_years = max(required_years)
-    
-    return max(required_years - candidate_years, 0,)
+
+    return max(experience_gaps)
     
 
 def compare_qualifications(qualifications, profile):
@@ -584,12 +632,16 @@ def compare_qualifications(qualifications, profile):
             matched = False
 
             if qualification_type == "years_experience":
-                candidate_years = profile.get(
-                    "experience", {}
-                ).get(
-                    "software_years", 0
+                domain = qualification.get(
+                    "domain",
+                    "software"
                 )
-
+                
+                candidate_years = get_candidate_experience_years(
+                    profile,
+                    domain
+                )
+                
                 matched = candidate_years >= required_value
 
             elif qualification_type == "degree":

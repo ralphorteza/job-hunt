@@ -281,3 +281,77 @@ Experience with Git.
     # Experience gap should override the strong technical match.
     assert job["recommendation"] == "SKIP"
     assert job["priority"] == "LOW"
+    
+    
+def test_process_job_uses_embedded_experience_years(
+    tmp_path,
+    monkeypatch,
+):
+    job_file = tmp_path / "embedded_experience_job.txt"
+
+    job_file.write_text(
+        """
+Company: Test Embedded Corp
+Role: Embedded Software Engineer
+URL: https://example.com/jobs/embedded
+Location: San Jose, CA
+
+Description:
+Job Description
+
+We are looking for an embedded software engineer to
+develop production software in C++ on embedded Linux.
+
+Required Qualifications
+
+5+ years of experience developing embedded Linux software
+
+Bachelor's degree
+
+Experience with C++
+
+Preferred Qualifications
+
+Experience with Python
+""",
+        encoding="utf-8",
+    )
+
+    profile = {
+        "skills": [
+            "c++",
+            "python",
+            "linux",
+            "embedded linux",
+            "embedded",
+        ],
+        "education": {
+            "degree_level": "bachelors",
+            "field": "computer science",
+        },
+        "experience": {
+            # Deliberately different.
+            "software_years": 10,
+            "embedded_years": 2,
+            "production_software": True,
+            "software_best_practices": True,
+        },
+    }
+
+    monkeypatch.setattr(
+        "score_job.load_profile",
+        lambda filename: profile,
+    )
+
+    job = process_job(job_file)
+
+    assert job["experience_gap"] == 3
+    assert job["experience_gap_severity"] == "moderate"
+
+    assert (
+        job["required_qualification_percentage"]
+        < 100
+    )
+
+    assert job["recommendation"] == "REVIEW"
+    assert job["priority"] == "MEDIUM"
