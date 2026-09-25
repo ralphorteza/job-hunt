@@ -622,6 +622,32 @@ def calculate_fit_score(comparison, track):
         
     percentage = weighted_total / total_weight
     return round(percentage / 10, 1)
+
+def calculate_overall_fit(
+    skill_fit,
+    required_qualification_percentage,
+    preferred_qualification_percentage
+):
+    weighted_total = skill_fit * 0.70
+    total_weight = 0.70
+    
+    if required_qualification_percentage is not None:
+        weighted_total += (
+            required_qualification_percentage / 10
+        ) * 0.25
+        total_weight += 0.25
+        
+    if preferred_qualification_percentage is not None:
+        weighted_total += (
+            preferred_qualification_percentage / 10
+        ) * 0.05
+        total_weight += 0.05
+        
+    if total_weight == 0:
+        return 0.0
+    
+    return round(weighted_total / total_weight, 1)
+
         
 def load_profile(filename):
     with open(filename, "r", encoding="utf-8") as file:
@@ -1101,8 +1127,15 @@ def process_job(filename):
         qualification_comparison["preferred_matched"],
         qualification_comparison["preferred_missing"],
     )
+    skill_fit_score = calculate_fit_score(comparison, resume)
     
-    fit_score = calculate_fit_score(comparison, resume)
+    fit_score = calculate_overall_fit(
+        skill_fit_score,
+        required_qualification_percentage,
+        preferred_qualification_percentage,
+    )
+    
+    # fit_score = calculate_fit_score(comparison, resume)
     missing_core_skills = count_missing_core_skills(comparison, resume)
     
     recommendation = recommend_application(
@@ -1127,6 +1160,7 @@ def process_job(filename):
         "track_score": track_score,
         "resume": resume,
         
+        "skill_fit_score": skill_fit_score,
         "fit_score": fit_score,
         
         "required_percentage": required_percentage,
