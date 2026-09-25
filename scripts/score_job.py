@@ -549,19 +549,23 @@ def calculate_experience_gap(qualification_comparison, profile,):
     if candidate_years is None:
         return None
     
+    required_qualifications = (
+        qualification_comparison["required_matched"]
+        + qualification_comparison["required_missing"]
+    )
+    
     required_years = [
         qualification["value"]
-        for qualification
-        in qualification_comparison["required_missing"]
+        for qualification in required_qualifications
         if qualification["type"] == "years_experience"
     ]
     
     if not required_years:
-        return 0
+        return None
     
-    highest_required = max(required_years)
+    required_years = max(required_years)
     
-    return max(0, highest_required - candidate_years)
+    return max(required_years - candidate_years, 0,)
     
 
 def compare_qualifications(qualifications, profile):
