@@ -395,23 +395,54 @@ def recommend_application(
     return "SKIP"
 
 
-def calculate_priority(recommendation, fit_score, required_percentage):
+def calculate_priority(
+    recommendation,
+    fit_score,
+    required_percentage,
+    experience_gap_severity="unknown",
+):
     if recommendation == "SKIP":
         return "LOW"
-    
-    if (
-        recommendation == "APPLY"
-        and fit_score >= 8.5
-        and (
-            required_percentage is None
-            or required_percentage >= 85
-        )
-    ):
-        return "HIGH"
-    
+
+    # Large experience gaps should never receive
+    # high or medium application priority.
+    if experience_gap_severity == "large":
+        return "LOW"
+
     if recommendation == "APPLY":
+        if (
+            fit_score >= 8.5
+            and (
+                required_percentage is None
+                or required_percentage >= 85
+            )
+            and experience_gap_severity in (
+                "none",
+                "unknown",
+            )
+        ):
+            return "HIGH"
+
         return "MEDIUM"
-    
+
+    if recommendation == "REVIEW":
+        if (
+            fit_score >= 7.0
+            and (
+                required_percentage is None
+                or required_percentage >= 70
+            )
+            and experience_gap_severity in (
+                "none",
+                "small",
+                "moderate",
+                "unknown",
+            )
+        ):
+            return "MEDIUM"
+
+        return "LOW"
+
     return "LOW"
 
 def extract_qualifications(description):
@@ -1246,7 +1277,8 @@ def process_job(filename):
     priority = calculate_priority(
         recommendation,
         fit_score,
-        required_percentage
+        required_percentage,
+        experience_gap_severity,
     )
     
     return {
