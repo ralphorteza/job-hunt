@@ -472,6 +472,104 @@ def detect_experience_domain(text):
         
     return "software"
 
+def extract_experience_requirements(text):
+    patterns = [
+        # 3-5 years / 3–5 years / 3 to 5 years
+        (
+            r"(?P<minimum>\d+)\s*"
+            r"(?:-|–|—|to)\s*"
+            r"(?P<maximum>\d+)\s*"
+            r"years?\s+of\s+experience"
+            r"(?P<context>.{0,100})"
+        ),
+
+        # at least 3 years of experience
+        (
+            r"at\s+least\s+"
+            r"(?P<minimum>\d+)\s*"
+            r"years?\s+of\s+experience"
+            r"(?P<context>.{0,100})"
+        ),
+
+        # minimum of 3 years of experience
+        (
+            r"minimum\s+of\s+"
+            r"(?P<minimum>\d+)\s*"
+            r"years?\s+of\s+experience"
+            r"(?P<context>.{0,100})"
+        ),
+
+        # 3 or more years of experience
+        (
+            r"(?P<minimum>\d+)\s+"
+            r"or\s+more\s+"
+            r"years?\s+of\s+experience"
+            r"(?P<context>.{0,100})"
+        ),
+
+        # Existing forms: 3+ years / 3 years
+        (
+            r"(?P<minimum>\d+)\s*\+?\s*"
+            r"years?\s+of\s+experience"
+            r"(?P<context>.{0,100})"
+        ),
+    ]
+    
+    requirements = []
+    matched_spans = []
+    
+    for pattern in patterns:
+        for match in re.finditer(
+            pattern,
+            text,
+            re.IGNORECASE,
+        ):
+            
+            # Don't let a generic pattern match text that
+            # was already captured by a more specific pattern.
+            start, end = match.span()
+            
+            overlaps = any(
+                start < existing_end
+                and end > existing_start
+                for existing_start, existing_end
+                in matched_spans
+            )
+            
+            if overlaps:
+                continue
+            
+            minimum = int(match.group("minimum"))
+            
+            maximum_group = match.groupdict().get("maximum")
+            
+            maximum = (
+                int(maximum_group)
+                if maximum_group
+                else None
+            )
+            
+            matched_text = match.group(0).strip()
+            
+            requirements.append({
+                # Keep value for existing code/tests.abs
+                "type": "years_experience",
+                "value": minimum,
+                
+                # New representation.
+                "minimum": minimum,
+                "maximum": maximum,
+                
+                "domain": detect_experience_domain(
+                    matched_text
+                ),
+                "text": matched_text,
+            })
+            
+            matched_spans.append(
+                (start, end)
+            )
+    return requirements
 
 def extract_qualifications(description):
     sections = split_job_sections(description)
@@ -485,23 +583,14 @@ def extract_qualifications(description):
         text = sections[section_name]
 
         # Years of experience
-        year_matches = re.finditer(
-            r"(\d+)\s*\+?\s*years?\s+of\s+experience"
-            r"(?P<context>.{0,100})",
-            text,
-            re.IGNORECASE
+        experience_requirements = (
+            extract_experience_requirements(text)
         )
-
-        for match in year_matches:
-            context = match.group(0)
-
-            qualifications[section_name].append({
-                "type": "years_experience",
-                "value": int(match.group(1)),
-                "domain": detect_experience_domain(context),
-                "text": match.group(0).strip(),
-            })
-
+        
+        qualifications[section_name].extend(
+            experience_requirements
+        )
+        
         # Bachelor's degree
         if re.search(
             r"\bbachelor'?s?\s+degree\b",
@@ -588,7 +677,10 @@ def calculate_experience_gap(
         if qualification["type"] != "years_experience":
             continue
 
-        required_years = qualification["value"]
+        required_years = qualification.get(
+            "minimum",
+            qualification["value"]
+        )
 
         domain = qualification.get(
             "domain",
@@ -627,7 +719,10 @@ def compare_qualifications(qualifications, profile):
     for section in ("required", "preferred"):
         for qualification in qualifications[section]:
             qualification_type = qualification["type"]
-            required_value = qualification["value"]
+            required_value = qualification.get(
+                "minimum",
+                qualification["value"]
+            )
 
             matched = False
 

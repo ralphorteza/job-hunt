@@ -15,6 +15,7 @@ from score_job import (
     recommend_application,
     calculate_priority,
     process_job,
+    extract_experience_requirements,
 )
 
 @pytest.fixture
@@ -352,6 +353,175 @@ Experience with Python
         job["required_qualification_percentage"]
         < 100
     )
+
+    assert job["recommendation"] == "REVIEW"
+    assert job["priority"] == "MEDIUM"
+    
+    
+    
+@pytest.mark.parametrize(
+    (
+        "text",
+        "expected_minimum",
+        "expected_maximum",
+        "expected_domain",
+    ),
+    [
+        (
+            "3-5 years of experience developing embedded software",
+            3,
+            5,
+            "embedded",
+        ),
+        (
+            "3–5 years of experience developing embedded software",
+            3,
+            5,
+            "embedded",
+        ),
+        (
+            "3 to 5 years of experience developing embedded software",
+            3,
+            5,
+            "embedded",
+        ),
+        (
+            "at least 3 years of experience developing embedded software",
+            3,
+            None,
+            "embedded",
+        ),
+        (
+            "minimum of 3 years of experience developing embedded software",
+            3,
+            None,
+            "embedded",
+        ),
+        (
+            "3 or more years of experience developing embedded software",
+            3,
+            None,
+            "embedded",
+        ),
+        (
+            "5+ years of experience developing embedded software",
+            5,
+            None,
+            "embedded",
+        ),
+        (
+            "2 years of experience writing production software",
+            2,
+            None,
+            "software",
+        ),
+    ],
+)
+def test_extract_experience_requirements(
+    text,
+    expected_minimum,
+    expected_maximum,
+    expected_domain,
+):
+    requirements = extract_experience_requirements(text)
+    
+    assert len(requirements) == 1
+    requirement = requirements[0]
+    
+    assert requirement["value"] == expected_minimum
+    assert requirement["minimum"] == expected_minimum
+    assert requirement["maximum"] == expected_maximum
+    
+    assert requirement["domain"] == expected_domain
+    
+def test_experience_range_does_not_create_duplicate_requirement():
+    requirements = extract_experience_requirements(
+        "3-5 years of experience developing embedded software"
+    )
+    
+    assert len(requirements) == 1
+    assert requirements[0]["minimum"] == 3
+    assert requirements[0]["maximum"] == 5
+    
+    
+def test_process_job_uses_minimum_of_experience_range(
+    tmp_path,
+    monkeypatch,
+):
+    job_file = tmp_path / "experience_range_job.txt"
+
+    job_file.write_text(
+        """
+Company: Range Test Corp
+Role: Embedded Software Engineer
+URL: https://example.com/jobs/range-test
+Location: San Jose, CA
+
+Description:
+Job Description
+
+Develop embedded software in C++ on embedded Linux.
+
+Required Qualifications
+
+3-5 years of experience developing embedded software
+
+Bachelor's degree
+
+Experience with C++
+
+Preferred Qualifications
+
+Experience with Python
+""",
+        encoding="utf-8",
+    )
+
+    profile = {
+        "skills": [
+            "c++",
+            "python",
+            "linux",
+            "embedded linux",
+            "embedded",
+        ],
+        "education": {
+            "degree_level": "bachelors",
+            "field": "computer science",
+        },
+        "experience": {
+            "software_years": 2,
+            "embedded_years": 2,
+            "production_software": True,
+            "software_best_practices": True,
+        },
+    }
+
+    monkeypatch.setattr(
+        "score_job.load_profile",
+        lambda filename: profile,
+    )
+
+    job = process_job(job_file)
+
+    assert job["experience_gap"] == 1
+    assert job["experience_gap_severity"] == "small"
+    
+    experience_qualifications = [
+        qualification
+        for qualification
+        in job["required_qualifications_matched"]
+        + job["required_qualifications_missing"]
+        if qualification["type"] == "years_experience"
+    ]
+    
+    assert len(experience_qualifications) == 1
+    
+    experience_requirement = ( experience_qualifications[0] )
+    
+    assert experience_requirement["minimum"] == 3
+    assert experience_requirement["maximum"] == 5
+    assert experience_requirement["domain"] == "embedded"
 
     assert job["recommendation"] == "REVIEW"
     assert job["priority"] == "MEDIUM"
