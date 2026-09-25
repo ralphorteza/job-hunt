@@ -267,7 +267,12 @@ def fetch_page(url):
     response.raise_for_status()
     final_url = response.url
     
-    return response.text, final_url
+    try:
+        html = response.content.decode("utf-8")
+    except UnicodeDecodeError:
+        html = response.text
+    
+    return html, final_url
 
 def clean_html(html):
     soup = BeautifulSoup(
@@ -279,6 +284,51 @@ def clean_html(html):
         separator="\n",
         strip=True
     )
+    
+def normalize_description_sections(text):
+    if not text:
+        return ""
+    
+    # Normalize unusual Unicode whitespece.
+    text = text.replace("\u202f", " ")
+    text = text.replace("\u00a0", " ")
+    
+    section_headings = [
+        "Job Description",
+        "The Role",
+        "What you’ll be doing (Responsibilities)",
+        "What you'll be doing (Responsibilities)",
+        "Your Skills & Abilities (Required Qualifications)",
+        "What Will Give You A Competitive Edge (Preferred Qualifications)",
+        "Compensation:",
+        "Bonus Potential:",
+        "Benefits:",
+        "Benefits Overview",
+        "About GM",
+        "Why Join Us",
+        "Non-Discrimination and Equal Employment Opportunities (U.S.)",
+        "Accommodations",
+    ]
+    
+    for heading in section_headings:
+        text = text.replace(
+            heading,
+            f"\n\n{heading}\n"
+        )
+        
+    # Remove excessive whitespace inside each line while
+    # preserving the section breaks we just created.
+    lines = []
+    
+    for line in text.splitlines():
+        line = re.sub(r"[ \t]+", " ", line).strip()
+        
+        if line:
+            lines.append(line)
+            
+    return "\n".join(lines)
+    
+    
 
 def find_jobposting(data):
     if isinstance(data, dict):
@@ -503,8 +553,11 @@ def extract_job_from_url(url):
         role = clean_text( str(posting.get("title", "")))
         location = extract_location(posting)
         
+        
         description_html = str(posting.get("description", ""))
+        
         description = clean_html(description_html)
+        description = normalize_description_sections(description)
         if description:
             return {
                 "company": company,
