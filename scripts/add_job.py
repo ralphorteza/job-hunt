@@ -239,6 +239,26 @@ def main():
         print(
             f"Preferred match: {preferred:.0f}%"
         )
+
+    required_qualification = job[
+        "required_qualification_percentage"
+    ]
+
+    preferred_qualification = job[
+        "preferred_qualification_percentage"
+    ]
+
+    if required_qualification is not None:
+        print(
+            f"Required qualifications: "
+            f"{required_qualification:.0f}%"
+        )
+
+    if preferred_qualification is not None:
+        print(
+            f"Preferred qualifications: "
+            f"{preferred_qualification:.0f}%"
+        )
         
     try:
         save_processed_job(job)

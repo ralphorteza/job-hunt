@@ -1,0 +1,35 @@
+Company: General Motors LLC
+Role: Embedded Software Engineer
+URL: https://generalmotors.wd5.myworkdayjobs.com/Careers_GM/job/Sunnyvale-California-United-States-of-America/Embedded-Software-Engineer_JR-202617527
+Location: GM Automation - Sunnyvale - GM Automation - Sunnyvale, United States of America
+
+Description:
+Job Description
+About GM
+is developing the next generation of embedded platform software to deliver state-of-the-art ADAS features to our customers. The Autonomy Interface SW (AIS) team is responsible for building runtime software that enables robust interface contracts, system degradation transitions, and seamless sensing integration with the autonomy stack.
+The Role
+As a Software Engineer you’ll be responsible for designing, documenting, and implementing complex, highly scalable, low-latency software in C++ on Linux-based systems for the AIS team. Your work will be the foundational software which the rest of GM’s AV stack is built upon. If you are looking to solve one of today’s most complex engineering challenges, see the results of your work in hundreds of self-driving cars, and make a positive impact in the world, join us.
+What you’ll be doing (Responsibilities)
+Develop software in C++ to interface the GM autonomy stack with the sensors and custom hardware on the vehicle Improve and deliver reliable software through requirements generation, continuous integration, automated testing, issue tracking, and code reviews Collaborate with colleagues across multiple teams and mentor other developers Deliver complex projects through incremental development
+Your Skills & Abilities (Required Qualifications)
+2+ years of experience writing production-quality software Bachelors Degree in relevant field or relevant work experience. Experience with C++11 or later Knowledge of and experience applying software best practices
+What Will Give You A Competitive Edge (Preferred Qualifications)
+4+ years of experience writing production-quality software Experience developing on and for embedded Linux / POSIX systems Demonstrated experience building, testing, and shipping production software Experience with safety critical development (FDA, FAA, Automotive) Experience with embedded build systems, such as buildroot or yocto. Experience working with Camera or other sensors like radars\lidars. Experience with networking Experience with ROS or other robotics middleware platforms Experience with other languages: C, Python, Bash, Go Experience with QNX, VxWorks, or similar.
+Compensation:
+The compensation information is a good faith estimate only. It is based on what a successful applicant might be paid in accordance with applicable state laws. The compensation may not be representative for positions located outside of New York, Colorado, California, or Washington
+Compensation:
+The expected base compensation for this role is: $123,200 - $189,100 Actual base compensation within the identified range will vary based on factors relevant to the position.
+Bonus Potential:
+An incentive pay program offers payouts based on company performance, job level, and individual performance.
+Benefits:
+GM offers a variety of health and wellbeing benefit programs. Benefit options include medical, dental, vision, Health Savings Account, Flexible Spending Accounts, retirement savings plan, sickness and accident benefits, life insurance, paid vacation & holidays. #LI-EL1 This role is categorized as hybrid. This means the selected candidate is expected to report to a specific location at least 3 times a week {or other frequency dictated by their manager}. The selected candidate will be required to travel <25% for this role. This job may be eligible for relocation benefits.
+About GM
+Our vision is a world with Zero Crashes, Zero Emissions and Zero Congestion and we embrace the responsibility to lead the change that will make our world better, safer and more equitable for all.
+Why Join Us
+We believe we all must make a choice every day – individually and collectively – to drive meaningful change through our words, our deeds and our culture. Every day, we want every employee to feel they belong to one General Motors team.
+Benefits Overview
+From day one, we're looking out for your well-being–at work and at home–so you can focus on realizing your ambitions. Learn how GM supports a rewarding career that rewards you personally by visiting Total Rewards resources.
+Non-Discrimination and Equal Employment Opportunities (U.S.)
+General Motors is committed to being a workplace that is not only free of unlawful discrimination, but one that genuinely fosters inclusion and belonging. We strongly believe that providing an inclusive workplace creates an environment in which our employees can thrive and develop better products for our customers. All employment decisions are made on a non-discriminatory basis without regard to sex, race, color, national origin, citizenship status, religion, age, disability, pregnancy or maternity status, sexual orientation, gender identity, status as a veteran or protected veteran, or any other similarly protected status in accordance with federal, state and local laws. We encourage interested candidates to review the key responsibilities and qualifications for each role and apply for any positions that match their skills and capabilities. Applicants in the recruitment process may be required, where applicable, to successfully complete a role-related assessment(s) and/or a pre-employment screening prior to beginning employment. To learn more, visit How we Hire.
+Accommodations
+General Motors offers opportunities to all job seekers including individuals with disabilities. If you need a reasonable accommodation to assist with your job search or application for employment, email us or call us at 1-800-865-7580. In your email, please include a description of the specific accommodation you are requesting as well as the job title and requisition number of the position for which you are applying. We are leading the change to make our world better, safer and more equitable for all through our actions and how we behave. Learn more about: Our Company Our Culture How we hire Our diverse team of employees bring their collective passion for engineering, technology and design to deliver on our vision of a world with Zero Crashes, Zero Emissions and Zero Congestion. We are looking for adventure-seekers and imaginative thought leaders to help us transform mobility. Explore our global locations We are determined to lead change for the world through technology, ingenuity and harnessing the creativity of our diverse team. Join us to help lead the change that will make our world better, safer and more equitable for all by becoming a member of GM’s Talent Community (beamery.com). As a part of our Talent Community, you will receive updates about GM, open roles, career insights and more. Please note that filling out the form below will not add you to our Talent Community automatically; you will need to use the link above. If you are seeking to apply to a specific role, we encourage you to click “Apply Now” on the job posting of interest.

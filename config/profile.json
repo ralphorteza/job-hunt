@@ -16,5 +16,17 @@
         "github actions",
         "pytest",
         "ci/cd"
-    ]
+    ],
+
+    "education": {
+        "degree_level": "bachelors",
+        "field": "computer science"
+    },
+
+    "experience": {
+        "software_years": 2,
+        "embedded_years": 2,
+        "production_software": true,
+        "software_best_practices": true
+    }
 }
