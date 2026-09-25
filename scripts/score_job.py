@@ -316,37 +316,84 @@ def build_skill_warnings(comparison, track):
             
     return warnings
 
-def recommend_application(fit_score, required_percentage, missing_core_skills):
-    # Some posting don't have a recognizable
-    # required-qualifications section.
-    if missing_core_skills >= 3:
+def count_critical_missing_qualifications(qualification_comparison):
+    critical_types = {
+        "degree",
+        "years_experience",
+    }
+    
+    return sum(
+        1
+        for qualification
+        in qualification_comparison["required_missing"]
+        if qualification["type"] in critical_types
+    )
+
+def recommend_application(
+    fit_score,
+    required_percentage,
+    missing_core_skills,
+    required_qualification_percentage,
+    critical_missing_qualifications,
+    experience_gap_severity,
+):
+    if experience_gap_severity == "large":
         return "SKIP"
     
-    if missing_core_skills >= 2:
+    if experience_gap_severity == "moderate":
         return "REVIEW"
     
+    # Critical required qualifications are strong blockers.
+    if critical_missing_qualifications >= 2:
+        return "SKIP"
+
+    if critical_missing_qualifications == 1:
+        return "REVIEW"
+
+    # Missing core technical requirements.
+    if missing_core_skills >= 3:
+        return "SKIP"
+
+    if missing_core_skills >= 2:
+        return "REVIEW"
+
+    # Required non-skill qualifications.
+    if (
+        required_qualification_percentage is not None
+        and required_qualification_percentage < 50
+    ):
+        return "SKIP"
+
+    if (
+        required_qualification_percentage is not None
+        and required_qualification_percentage < 75
+    ):
+        return "REVIEW"
+
+    # Posting has no recognizable required-skill section.
     if required_percentage is None:
         if fit_score >= APPLY_FIT_THRESHOLD:
             return "APPLY"
-        
+
         if fit_score >= REVIEW_FIT_THRESHOLD:
             return "REVIEW"
-        
+
         return "SKIP"
-    
+
     if (
         fit_score >= APPLY_FIT_THRESHOLD
         and required_percentage >= APPLY_REQUIRED_THRESHOLD
     ):
         return "APPLY"
-        
+
     if (
         fit_score >= REVIEW_FIT_THRESHOLD
         and required_percentage >= REVIEW_REQUIRED_THRESHOLD
     ):
         return "REVIEW"
-    
+
     return "SKIP"
+
 
 def calculate_priority(recommendation, fit_score, required_percentage):
     if recommendation == "SKIP":
@@ -447,6 +494,44 @@ def extract_job_skills(description):
             })
             
     return job_skills
+
+def classify_experience_gap(experience_gap):
+    if experience_gap is None:
+        return "unknown"
+    
+    if experience_gap == 0:
+        return "none"
+    
+    if experience_gap <= 1:
+        return "small"
+    
+    if experience_gap <= 3:
+        return "moderate"
+    
+    return "large"
+
+def calculate_experience_gap(qualification_comparison, profile,):
+    candidate_years = profile.get(
+        "experience", {}
+    ).get("software_years")
+    
+    if candidate_years is None:
+        return None
+    
+    required_years = [
+        qualification["value"]
+        for qualification
+        in qualification_comparison["required_missing"]
+        if qualification["type"] == "years_experience"
+    ]
+    
+    if not required_years:
+        return 0
+    
+    highest_required = max(required_years)
+    
+    return max(0, highest_required - candidate_years)
+    
 
 def compare_qualifications(qualifications, profile):
     results = {
@@ -1117,6 +1202,17 @@ def process_job(filename):
         qualifications,
         profile
     )
+    
+    experience_gap = calculate_experience_gap(
+        qualification_comparison,
+        profile,
+    )
+    
+    experience_gap_severity = classify_experience_gap(experience_gap)
+    
+    critical_missing_qualifications = (
+        count_critical_missing_qualifications(qualification_comparison)
+    )
 
     required_qualification_percentage = calculate_qualification_match(
         qualification_comparison["required_matched"],
@@ -1141,7 +1237,10 @@ def process_job(filename):
     recommendation = recommend_application(
         fit_score,
         required_percentage,
-        missing_core_skills
+        missing_core_skills,
+        required_qualification_percentage,
+        critical_missing_qualifications,
+        experience_gap_severity,
     )
     
     priority = calculate_priority(
@@ -1190,7 +1289,9 @@ def process_job(filename):
 
         "preferred_qualifications_missing":
             qualification_comparison["preferred_missing"],
-        
+        "critical_missing_qualifications": critical_missing_qualifications,
+        "experience_gap": experience_gap,
+        "experience_gap_severity": experience_gap_severity,
         "missing_core_skills": missing_core_skills,
         "recommendation": recommendation,
         "priority": priority,
