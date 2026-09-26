@@ -19,6 +19,9 @@ from score_job import (
     count_critical_missing_qualifications,
     calculate_qualification_match,
     calculate_experience_qualification_credit,
+    extract_degree_requirements,
+    extract_qualifications,
+    calculate_degree_qualification_credit,
 )
 
 @pytest.fixture
@@ -663,3 +666,441 @@ def test_qualification_match_partial_experience_credit():
     )
 
     assert percentage == 87.5
+    
+    
+@pytest.mark.parametrize(
+    (
+        "text",
+        "expected_level",
+        "expected_equivalent",
+    ),
+    [
+        (
+            "Bachelor's degree required",
+            "bachelors",
+            False,
+        ),
+        (
+            "Bachelor degree in Computer Science",
+            "bachelors",
+            False,
+        ),
+        (
+            "BS in Computer Science",
+            "bachelors",
+            False,
+        ),
+        (
+            "B.S. in Electrical Engineering",
+            "bachelors",
+            False,
+        ),
+        (
+            "Bachelor's degree or equivalent experience",
+            "bachelors",
+            True,
+        ),
+        (
+            "Bachelor's degree or comparable work experience",
+            "bachelors",
+            True,
+        ),
+        (
+            "Master's degree preferred",
+            "masters",
+            False,
+        ),
+        (
+            "MS in Computer Science",
+            "masters",
+            False,
+        ),
+        (
+            "PhD in Computer Science",
+            "phd",
+            False,
+        ),
+    ],
+)
+def test_extract_degree_requirements(
+    text,
+    expected_level,
+    expected_equivalent,
+):
+    requirements = extract_degree_requirements(
+        text
+    )
+
+    assert len(requirements) == 1
+
+    requirement = requirements[0]
+
+    assert requirement["type"] == "degree"
+    assert requirement["value"] == expected_level
+    assert requirement["minimum"] == expected_level
+    assert (
+        requirement["equivalent_experience"]
+        == expected_equivalent
+    )
+    
+    
+def test_extract_qualifications_degree_not_duplicated():
+    description = """
+Required Qualifications
+
+Bachelor's degree in Computer Science
+"""
+
+    qualifications = extract_qualifications(
+        description
+    )
+
+    degree_requirements = [
+        qualification
+        for qualification
+        in qualifications["required"]
+        if qualification["type"] == "degree"
+    ]
+
+    assert len(degree_requirements) == 1
+
+    degree = degree_requirements[0]
+
+    assert degree["value"] == "bachelors"
+    assert degree["minimum"] == "bachelors"
+    assert degree["equivalent_experience"] is False
+    
+    
+    
+@pytest.mark.parametrize(
+    (
+        "candidate_degree",
+        "required_degree",
+        "expected_credit",
+    ),
+    [
+        ("bachelors", "bachelors", 1.0),
+        ("masters", "bachelors", 1.0),
+        ("phd", "bachelors", 1.0),
+        ("bachelors", "masters", 0.0),
+        ("masters", "masters", 1.0),
+        ("phd", "masters", 1.0),
+        ("masters", "phd", 0.0),
+        ("phd", "phd", 1.0),
+    ],
+)
+
+
+def test_degree_qualification_credit(
+    candidate_degree,
+    required_degree,
+    expected_credit,
+):
+    qualification = {
+        "type": "degree",
+        "value": required_degree,
+        "minimum": required_degree,
+        "equivalent_experience": False,
+    }
+
+    profile = {
+        "education": {
+            "degree_level": candidate_degree,
+        }
+    }
+
+    credit = calculate_degree_qualification_credit(
+        qualification,
+        profile,
+    )
+
+    assert credit == expected_credit
+    
+    
+def test_degree_qualification_credit_missing_degree():
+    qualification = {
+        "type": "degree",
+        "value": "bachelors",
+        "minimum": "bachelors",
+        "equivalent_experience": False,
+    }
+
+    profile = {
+        "education": {}
+    }
+
+    credit = calculate_degree_qualification_credit(
+        qualification,
+        profile,
+    )
+
+    assert credit == 0.0
+    
+def test_compare_qualifications_uses_degree_hierarchy():
+    qualifications = {
+        "required": [
+            {
+                "type": "degree",
+                "value": "bachelors",
+                "minimum": "bachelors",
+                "equivalent_experience": False,
+                "text": "Bachelor's degree",
+            }
+        ],
+        "preferred": [],
+    }
+
+    profile = {
+        "education": {
+            "degree_level": "masters",
+        },
+        "experience": {},
+        "skills": [],
+    }
+
+    comparison = compare_qualifications(
+        qualifications,
+        profile,
+    )
+
+    assert len(
+        comparison["required_matched"]
+    ) == 1
+
+    assert (
+        comparison["required_missing"]
+        == []
+    )
+    
+    
+def test_compare_qualifications_detects_missing_degree():
+    qualifications = {
+        "required": [
+            {
+                "type": "degree",
+                "value": "masters",
+                "minimum": "masters",
+                "equivalent_experience": False,
+                "text": "Master's degree",
+            }
+        ],
+        "preferred": [],
+    }
+
+    profile = {
+        "education": {
+            "degree_level": "bachelors",
+        },
+        "experience": {},
+        "skills": [],
+    }
+
+    comparison = compare_qualifications(
+        qualifications,
+        profile,
+    )
+
+    assert (
+        comparison["required_matched"]
+        == []
+    )
+
+    assert len(
+        comparison["required_missing"]
+    ) == 1
+    
+@pytest.mark.parametrize(
+    (
+        "degree_level",
+        "software_years",
+        "equivalent_experience",
+        "expected_credit",
+    ),
+    [
+        (None, 4, True, 1.0),
+        (None, 2, True, 0.0),
+        (None, 10, False, 0.0),
+        ("bachelors", 0, False, 1.0),
+    ],
+)
+def test_degree_equivalent_experience(
+    degree_level,
+    software_years,
+    equivalent_experience,
+    expected_credit,
+):
+    qualification = {
+        "type": "degree",
+        "value": "bachelors",
+        "minimum": "bachelors",
+        "equivalent_experience": equivalent_experience,
+    }
+
+    profile = {
+        "education": {
+            "degree_level": degree_level,
+        },
+        "experience": {
+            "software_years": software_years,
+        },
+    }
+
+    credit = calculate_degree_qualification_credit(
+        qualification,
+        profile,
+    )
+
+    assert credit == expected_credit
+    
+    
+def test_compare_qualifications_accepts_degree_equivalent_experience():
+    qualifications = {
+        "required": [
+            {
+                "type": "degree",
+                "value": "bachelors",
+                "minimum": "bachelors",
+                "equivalent_experience": True,
+                "text": "Bachelor's degree or equivalent experience",
+            }
+        ],
+        "preferred": [],
+    }
+
+    profile = {
+        "education": {},
+        "experience": {
+            "software_years": 4,
+        },
+        "skills": [],
+    }
+
+    comparison = compare_qualifications(
+        qualifications,
+        profile,
+    )
+
+    assert len(
+        comparison["required_matched"]
+    ) == 1
+
+    assert comparison["required_missing"] == []
+    
+    
+def test_compare_qualifications_rejects_insufficient_degree_equivalent_experience():
+    qualifications = {
+        "required": [
+            {
+                "type": "degree",
+                "value": "bachelors",
+                "minimum": "bachelors",
+                "equivalent_experience": True,
+                "text": "Bachelor's degree or equivalent experience",
+            }
+        ],
+        "preferred": [],
+    }
+
+    profile = {
+        "education": {},
+        "experience": {
+            "software_years": 2,
+        },
+        "skills": [],
+    }
+
+    comparison = compare_qualifications(
+        qualifications,
+        profile,
+    )
+
+    assert comparison["required_matched"] == []
+
+    assert len(
+        comparison["required_missing"]
+    ) == 1
+    
+    
+def test_process_job_accepts_degree_equivalent_experience(
+    tmp_path,
+    monkeypatch,
+):
+    job_file = tmp_path / "degree_equivalent_job.txt"
+
+    job_file.write_text(
+        """
+Company: Equivalent Experience Corp
+Role: Software Engineer
+URL: https://example.com/jobs/equivalent-experience
+Location: San Jose, CA
+
+Description:
+Job Description
+
+Develop production software using Python and Linux.
+
+Required Qualifications
+
+Bachelor's degree or equivalent experience
+
+4+ years of experience writing production software
+
+Experience with Python
+
+Preferred Qualifications
+
+Experience with Linux
+""",
+        encoding="utf-8",
+    )
+
+    profile = {
+        "skills": [
+            "python",
+            "linux",
+        ],
+        "education": {},
+        "experience": {
+            "software_years": 4,
+            "embedded_years": 0,
+            "production_software": True,
+            "software_best_practices": True,
+        },
+    }
+
+    monkeypatch.setattr(
+        "score_job.load_profile",
+        lambda filename: profile,
+    )
+
+    job = process_job(job_file)
+
+    degree_qualifications = [
+        qualification
+        for qualification
+        in (
+            job["required_qualifications_matched"]
+            + job["required_qualifications_missing"]
+        )
+        if qualification["type"] == "degree"
+    ]
+
+    assert len(degree_qualifications) == 1
+
+    degree = degree_qualifications[0]
+
+    assert degree["minimum"] == "bachelors"
+    assert degree["equivalent_experience"] is True
+
+    assert degree in job[
+        "required_qualifications_matched"
+    ]
+
+    assert degree not in job[
+        "required_qualifications_missing"
+    ]
+
+    assert (
+        job["required_qualification_percentage"]
+        == 100.0
+    )

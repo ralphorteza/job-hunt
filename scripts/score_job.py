@@ -271,6 +271,14 @@ TARGET_SKILLS = [
         "pmsm",
 ]
 
+DEGREE_LEVELS = {
+    "high_school": 1,
+    "associates": 2,
+    "bachelors": 3,
+    "masters": 4,
+    "phd": 5,
+}
+
 def count_missing_core_skills(comparison, track):
     count = 0
     
@@ -482,6 +490,65 @@ def detect_experience_domain(text):
         
     return "software"
 
+def extract_degree_requirements(text):
+    requirements = []
+    
+    degree_patterns = [
+        (
+            "phd",
+            r"\b(?:ph\.?d\.?|doctorate|doctoral degree)\b",
+        ),
+        (
+            "masters",
+            r"\b(?:master'?s?\s+degree|m\.?s\.?)\b",
+        ),
+        (
+            "bachelors",
+            r"\b(?:bachelor'?s?\s+degree|b\.?s\.?|b\.?a\.?)\b",
+        ),
+        (
+            "associates",
+            r"\bassociate'?s?\s+degree\b",
+        ),
+    ]
+    
+    for degree_level, pattern in degree_patterns:
+        match = re.search(
+            pattern,
+            text,
+            re.IGNORECASE,
+        )
+        
+        if not match:
+            continue
+        
+        # Capture enough surrounding text to detect things like
+        # "or equivalent experience" and fields of study.
+        start = max(0, match.start() - 40)
+        end = min(len(text), match.end() + 120)
+        
+        context = text[start:end]
+        
+        equivalent_experience = bool(
+            
+            re.search(
+                r"\bor\s+(?:equivalent|comparable)\s+"
+                r"(?:professional\s+|work\s+)?experience\b",
+                context,
+                re.IGNORECASE,
+            )
+        )
+        
+        requirements.append({
+            "type": "degree",
+            "value": degree_level,
+            "minimum": degree_level,
+            "equivalent_experience": equivalent_experience,
+            "text": match.group(0),
+        })
+        
+    return requirements
+
 def extract_experience_requirements(text):
     patterns = [
         # 3-5 years / 3–5 years / 3 to 5 years
@@ -602,16 +669,13 @@ def extract_qualifications(description):
         )
         
         # Bachelor's degree
-        if re.search(
-            r"\bbachelor'?s?\s+degree\b",
-            text,
-            re.IGNORECASE
-        ):
-            qualifications[section_name].append({
-                "type": "degree",
-                "value": "bachelors",
-                "text": "Bachelor's degree",
-            })
+        degree_requirements = extract_degree_requirements(
+            text
+        )
+        
+        qualifications[section_name].extend(
+            degree_requirements
+        )
 
         # Production software
         if re.search(
@@ -656,6 +720,42 @@ def extract_job_skills(description):
             })
             
     return job_skills
+
+def calculate_degree_qualification_credit(
+    qualification,
+    profile,
+):
+    required_degree = qualification.get(
+        "minimum",
+        qualification.get("value"),
+    )
+    
+    candidate_degree = profile.get(
+        "education", {}
+    ).get("degree_level")
+    
+    if required_degree is None:
+        return 0.0
+    
+    if candidate_degree is None:
+        return 0.0
+
+    required_level = DEGREE_LEVELS.get(
+        required_degree,
+        0,
+    )
+    
+    candidate_level = DEGREE_LEVELS.get(
+        candidate_degree,
+        0,
+    )
+    
+    if candidate_level >= required_level:
+        return 1.0
+    
+    return 0.0
+    
+    
 
 def calculate_experience_qualification_credit(
     qualification,
@@ -759,7 +859,66 @@ def calculate_experience_gap(
         return None
 
     return max(experience_gaps)
-    
+
+def calculate_degree_qualification_credit(
+    qualification,
+    profile,
+):
+    degree_levels = {
+        "high_school": 1,
+        "associates": 2,
+        "bachelors": 3,
+        "masters": 4,
+        "phd": 5,
+    }
+
+    required_degree = qualification.get(
+        "minimum",
+        qualification.get("value"),
+    )
+
+    candidate_degree = profile.get(
+        "education", {}
+    ).get("degree_level")
+
+    candidate_level = degree_levels.get(
+        candidate_degree,
+        0,
+    )
+
+    required_level = degree_levels.get(
+        required_degree,
+        0,
+    )
+
+    if candidate_level >= required_level:
+        return 1.0
+
+    if not qualification.get(
+        "equivalent_experience",
+        False,
+    ):
+        return 0.0
+
+    equivalent_years = {
+        "bachelors": 4,
+        "masters": 6,
+    }.get(required_degree)
+
+    if equivalent_years is None:
+        return 0.0
+
+    candidate_years = profile.get(
+        "experience", {}
+    ).get(
+        "software_years",
+        0,
+    )
+
+    if candidate_years >= equivalent_years:
+        return 1.0
+
+    return 0.0
 
 def compare_qualifications(qualifications, profile):
     results = {
@@ -793,27 +952,12 @@ def compare_qualifications(qualifications, profile):
                 matched = candidate_years >= required_value
 
             elif qualification_type == "degree":
-                candidate_degree = profile.get(
-                    "education", {}
-                ).get("degree_level")
-
-                degree_levels = {
-                    "high_school": 1,
-                    "associates": 2,
-                    "bachelors": 3,
-                    "masters": 4,
-                    "phd": 5,
-                }
-
-                candidate_level = degree_levels.get(
-                    candidate_degree, 0
+                credit = calculate_degree_qualification_credit(
+                    qualification,
+                    profile,
                 )
 
-                required_level = degree_levels.get(
-                    required_value, 0
-                )
-
-                matched = candidate_level >= required_level
+                matched = credit >= 1.0
 
             elif qualification_type == "production_software":
                 matched = profile.get(
