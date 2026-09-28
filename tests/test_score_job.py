@@ -23,7 +23,8 @@ from score_job import (
     extract_qualifications,
     calculate_degree_qualification_credit,
     extract_degree_fields,
-    allows_related_degree_field
+    allows_related_degree_field,
+    calculate_degree_field_credit,
 )
 
 @pytest.fixture
@@ -1159,3 +1160,69 @@ def text_extract_degree_fields(
         allows_related_degree_field(text)
         == related_allowed
     )
+    
+@pytest.mark.parametrize(
+    (
+        "profile_field",
+        "required_fields",
+        "related_field_allowed",
+        "expected_credit",
+    ),
+    [
+        (
+            "computer science",
+            [],
+            False,
+            1.0,
+        ),
+        (
+            "computer science",
+            ["computer science"],
+            False,
+            1.0,
+        ),
+        (
+            "computer science",
+            ["computer science", "computer engineering"],
+            False,
+            1.0,
+        ),
+        (
+            "computer science",
+            ["electrical engineering"],
+            False,
+            0.0,
+        ),
+        (
+            "computer science",
+            ["computer engineering"],
+            True,
+            1.0,
+        ),
+        (
+            "computer science",
+            ["electrical engineering"],
+            True,
+            0.0,
+        ),
+        (
+            None,
+            ["computer science"],
+            False,
+            0.0,
+        ),
+    ],
+)
+def test_degree_field_credit(
+    profile_field,
+    required_fields,
+    related_field_allowed,
+    expected_credit,
+):
+    credit = calculate_degree_field_credit(
+        profile_field,
+        required_fields,
+        related_field_allowed,
+    )
+
+    assert credit == expected_credit

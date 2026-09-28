@@ -39,6 +39,30 @@ DEGREE_FIELD_GROUPS = {
     }
 }
 
+DEGREE_FIELD_RELATIONSHIPS = {
+    "computer science": {
+        "computer engineering",
+        "software engineering",
+    },
+    
+    "computer engineering": {
+        "computer science",
+        "electrical engineering",
+        "electrical and computer engineering",
+        "software engineering",
+    },
+    
+    "electrical engineering": {
+        "computer engineering",
+        "electrical and computer engineering",
+    },
+    
+    "electrical and computer engineering": {
+        "electrical engineering",
+        "computer engineering",
+    }
+}
+
 REQUIRED_HEADINGS = [
     "requirements",
     "required qualifications",
@@ -299,6 +323,27 @@ DEGREE_LEVELS = {
     "masters": 4,
     "phd": 5,
 }
+
+def degree_fields_are_related(
+    profile_field,
+    required_field,
+):
+    profile_field = normalize_degree_field(
+        profile_field
+    )
+    required_field = normalize_degree_field(required_field)
+    
+    if profile_field == required_field:
+        return True
+    
+    related_fields = DEGREE_FIELD_RELATIONSHIPS.get(
+        required_field,
+        set(),
+    )
+    
+    return profile_field in related_fields
+
+
 
 def count_missing_core_skills(comparison, track):
     count = 0
@@ -745,6 +790,52 @@ def extract_job_skills(description):
             })
             
     return job_skills
+
+def calculate_degree_field_credit(
+    profile_field,
+    required_fields,
+    related_field_allowed=False,
+):
+    """
+    Calculate how well the candidate's degree field satisfies the 
+    job's degree-field requirements.
+    
+    Returns:
+        1.0 -> field requirement satisfied
+        0.0 -> field requirement not satisfied
+    """
+    
+    if not required_fields:
+        return 1.0
+    
+    if not profile_field:
+        return 0.0
+    
+    profile_field = normalize_degree_field(
+        profile_field
+    )
+    
+    normalized_required_fields = {
+        normalize_degree_field(field)
+        for field in required_fields
+    }
+    
+    # Extract field match.
+    if profile_field in normalized_required_fields:
+        return 1.0
+    
+    # If the posting explicitly accepts related fields,
+    # check whether the candidate's field is related to
+    # any of the listed fields.
+    if related_field_allowed:
+        for required_field in normalized_required_fields:
+            if degree_fields_are_related(
+                profile_field,
+                required_field,
+            ):
+                return 1.0
+    
+    return 0.0
 
 def calculate_degree_qualification_credit(
     qualification,
@@ -1392,6 +1483,20 @@ def normalize_degree_field(field):
         "electrical and computer engineering": "electrical engineering",
         
         "se": "software engineering",
+        
+        "cs": "computer science",
+        "comp sci": "computer science",
+
+        "ce": "computer engineering",
+        "comp eng": "computer engineering",
+
+        "ee": "electrical engineering",
+        "electrical eng": "electrical engineering",
+
+        "ece": "electrical and computer engineering",
+
+        "se": "software engineering",
+        "software eng": "software engineering",
     }
     
     return aliases.get(field, field)
