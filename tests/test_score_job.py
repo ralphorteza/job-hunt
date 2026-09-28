@@ -1392,3 +1392,73 @@ def test_compare_qualifications_degree_field_wrong():
 
     assert len(result["required_matched"]) == 0
     assert len(result["required_missing"]) == 1
+    
+    
+@pytest.mark.parametrize(
+    (
+        "candidate_field",
+        "required_fields",
+        "related_field_allowed",
+        "expected_credit",
+    ),
+    [
+        (
+            "computer science",
+            [],
+            False,
+            1.0,
+        ),
+        (
+            "computer science",
+            ["computer science"],
+            False,
+            1.0,
+        ),
+        (
+            "computer science",
+            [
+                "computer science",
+                "computer engineering",
+            ],
+            False,
+            1.0,
+        ),
+        (
+            "computer science",
+            ["electrical engineering"],
+            False,
+            0.0,
+        ),
+        (
+            "computer science",
+            ["computer engineering"],
+            True,
+            0.75,
+        ),
+        (
+            "computer science",
+            ["mechanical engineering"],
+            True,
+            0.0,
+        ),
+        (
+            None,
+            ["computer science"],
+            False,
+            0.0,
+        ),
+    ],
+)
+def test_degree_field_credit(
+    candidate_field,
+    required_fields,
+    related_field_allowed,
+    expected_credit,
+):
+    credit = calculate_degree_field_credit(
+        candidate_field,
+        required_fields,
+        related_field_allowed,
+    )
+
+    assert credit == expected_credit

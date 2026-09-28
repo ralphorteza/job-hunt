@@ -18,6 +18,26 @@ APPLY_REQUIRED_THRESHOLD = 70.0
 REVIEW_FIT_THRESHOLD = 5.0
 REVIEW_REQUIRED_THRESHOLD = 50.0
 
+RELATED_DEGREE_FIELDS = {
+    "computer science": {
+        "computer engineering",
+        "software engineering",
+    },
+    "computer engineering": {
+        "computer science",
+        "electrical engineering",
+        "software engineering",
+    },
+    "electrical engineering": {
+        "computer science",
+        "computer engineering",
+    },
+    "software engineering": {
+        "computer science",
+        "computer engineering",
+    },
+}
+
 DEGREE_FIELD_GROUPS = {
     "computer science": {
         "computer science",
@@ -791,51 +811,52 @@ def extract_job_skills(description):
             
     return job_skills
 
+
 def calculate_degree_field_credit(
-    profile_field,
+    candidate_field,
     required_fields,
     related_field_allowed=False,
 ):
-    """
-    Calculate how well the candidate's degree field satisfies the 
-    job's degree-field requirements.
-    
-    Returns:
-        1.0 -> field requirement satisfied
-        0.0 -> field requirement not satisfied
-    """
-    
     if not required_fields:
         return 1.0
-    
-    if not profile_field:
+
+    if not candidate_field:
         return 0.0
-    
-    profile_field = normalize_degree_field(
-        profile_field
+
+    candidate_field = normalize_degree_field(
+        candidate_field
     )
-    
-    normalized_required_fields = {
+
+    normalized_required_fields = [
         normalize_degree_field(field)
         for field in required_fields
-    }
-    
-    # Extract field match.
-    if profile_field in normalized_required_fields:
+    ]
+
+    # Exact field match.
+    if candidate_field in normalized_required_fields:
         return 1.0
+
+    # A related field only counts when the posting
+    # explicitly allows related fields.
+    if not related_field_allowed:
+        return 0.0
+
+    for required_field in normalized_required_fields:
+        related_fields = RELATED_DEGREE_FIELDS.get(
+            required_field,
+            set(),
+        )
+
+        normalized_related_fields = {
+            normalize_degree_field(field)
+            for field in related_fields
+        }
+
+        if candidate_field in normalized_related_fields:
+            return 0.75
+
+    return 0.0    
     
-    # If the posting explicitly accepts related fields,
-    # check whether the candidate's field is related to
-    # any of the listed fields.
-    if related_field_allowed:
-        for required_field in normalized_required_fields:
-            if degree_fields_are_related(
-                profile_field,
-                required_field,
-            ):
-                return 1.0
-    
-    return 0.0
 
 def calculate_degree_qualification_credit(
     qualification,
@@ -1516,6 +1537,14 @@ def normalize_degree_field(field):
     if not field:
         return None
     
+    return " ".join(
+        field.lower().strip().split()
+    )
+
+def normalize_degree_field(field):
+    if not field:
+        return None
+    
     field = field.lower().strip()
     
     aliases = {
@@ -1602,19 +1631,6 @@ def choose_resume(results):
         return "embedded"
 
     return "swe"
-
-# def meta_data_exists(
-#     company,
-#     role,
-#     url,
-#     csv_filename="jobs.csv"
-# ):
-#     return job_exists(
-#         csv_filename,
-#         company,
-#         role,
-#         url
-#     )
 
 def job_exists(csv_filename, company, role, url):
     csv_path = Path(csv_filename)
