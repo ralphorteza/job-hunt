@@ -38,50 +38,6 @@ RELATED_DEGREE_FIELDS = {
     },
 }
 
-DEGREE_FIELD_GROUPS = {
-    "computer science": {
-        "computer science",
-        "computer engineering",
-        "software engingeering",
-    },
-    "computer engineering": {
-        "computer engineering",
-        "computer science",
-        "electrical engineering",
-    },
-    "electrical engineering": {
-        "electrical engineering",
-        "computer engineering",
-    },
-    "software engineering": {
-        "software engineering",
-        "computer science",
-    }
-}
-
-DEGREE_FIELD_RELATIONSHIPS = {
-    "computer science": {
-        "computer engineering",
-        "software engineering",
-    },
-    
-    "computer engineering": {
-        "computer science",
-        "electrical engineering",
-        "electrical and computer engineering",
-        "software engineering",
-    },
-    
-    "electrical engineering": {
-        "computer engineering",
-        "electrical and computer engineering",
-    },
-    
-    "electrical and computer engineering": {
-        "electrical engineering",
-        "computer engineering",
-    }
-}
 
 REQUIRED_HEADINGS = [
     "requirements",
@@ -282,7 +238,7 @@ SKILL_TRACKS = {
         "uart": 2,
         "can": 2,
         "device driver": 2,
-        "baremetal": 3,
+        "bare metal": 3,
     },
     "motor_control": {
         "c":2,
@@ -293,7 +249,6 @@ SKILL_TRACKS = {
         "microcontroller": 2,
         "motor control": 4,
         "foc": 4,
-        "field oriented control": 4,
         "pid": 3,
         "bldc": 4,
         "pmsm": 4,
@@ -319,23 +274,6 @@ SKILL_TRACKS = {
     },
 }
 
-TARGET_SKILLS = [
-        "c++",
-        "linux",
-        "stm32",
-        "microcontroller",
-        "spi",
-        "i2c",
-        "uart",
-        "rtos",
-        "real-time",
-        "python",
-        "foc",
-        "pid",
-        "bldc",
-        "pmsm",
-]
-
 DEGREE_LEVELS = {
     "high_school": 1,
     "associates": 2,
@@ -343,26 +281,6 @@ DEGREE_LEVELS = {
     "masters": 4,
     "phd": 5,
 }
-
-def degree_fields_are_related(
-    profile_field,
-    required_field,
-):
-    profile_field = normalize_degree_field(
-        profile_field
-    )
-    required_field = normalize_degree_field(required_field)
-    
-    if profile_field == required_field:
-        return True
-    
-    related_fields = DEGREE_FIELD_RELATIONSHIPS.get(
-        required_field,
-        set(),
-    )
-    
-    return profile_field in related_fields
-
 
 
 def count_missing_core_skills(comparison, track):
@@ -719,7 +637,7 @@ def extract_experience_requirements(text):
             matched_text = match.group(0).strip()
             
             requirements.append({
-                # Keep value for existing code/tests.abs
+                # Keep "value" for backwards compatibility with existing code/tests.
                 "type": "years_experience",
                 "value": minimum,
                 
@@ -1412,13 +1330,6 @@ def split_job_sections(description):
         section: "\n".join(lines)
         for section, lines in sections.items()
     }
-
-def find_missing_skills(description):
-    text = description.lower()
-    return [skill
-            for skill in TARGET_SKILLS
-            if skill not in text
-    ]
       
 def skill_matches(skill, text):
     patterns = SKILL_PATTERNS.get(skill, [])
@@ -1499,39 +1410,39 @@ def extract_degree_fields(text):
 
     return fields
 
-def degree_field_matches(
-    candidate_field,
-    required_fields,
-    related_field_allowed:False,
-):
-    if not required_fields:
-        return True
+# def degree_field_matches(
+#     candidate_field,
+#     required_fields,
+#     related_field_allowed:False,
+# ):
+#     if not required_fields:
+#         return True
     
-    candidate_field = normalize_degree_field(candidate_field)
+#     candidate_field = normalize_degree_field(candidate_field)
     
-    if not candidate_field:
-        return False
+#     if not candidate_field:
+#         return False
     
-    normalized_required_fields = {
-        normalize_degree_field(field)
-        for field in required_fields
-    }
+#     normalized_required_fields = {
+#         normalize_degree_field(field)
+#         for field in required_fields
+#     }
     
-    # Exact field match.
-    if candidate_field in normalized_required_fields:
-        return True
+#     # Exact field match.
+#     if candidate_field in normalized_required_fields:
+#         return True
     
-    # If the posting explicitly allows related fields,
-    # check our field-equivalent groups.
-    if related_field_allowed:
-        relateted_fields = DEGREE_FIELD_GROUPS.get(
-            candidate_field, {candidate_field}
-        )
+#     # If the posting explicitly allows related fields,
+#     # check our field-equivalent groups.
+#     if related_field_allowed:
+#         relateted_fields = DEGREE_FIELD_GROUPS.get(
+#             candidate_field, {candidate_field}
+#         )
         
-        if relateted_fields & normalized_required_fields:
-            return True
+#         if relateted_fields & normalized_required_fields:
+#             return True
     
-    return False
+#     return False
 
 def normalize_degree_field(field):
     if not field:
