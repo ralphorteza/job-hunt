@@ -1678,30 +1678,13 @@ def save_job(
 
         if not file_exists:
             writer.writeheader()
-
-        # required_matches = [
-        #     match["skill"]
-        #     for match in matches
-        #     if match["section"] == "required"
-        # ]
-        
-        # preferred_matches = [
-        #     match["skill"]
-        #     for match in matches
-        #     if match["section"] == "preferred"
-        # ]
-        
-        # general_matches = [
-        #     match["skill"]
-        #     for match in matches
-        #     if match["section"] == "general"
-        # ]
         
         writer.writerow({
             "Company": company,
             "Role": role,
             "URL": url,
             "Location": location,
+            "Job Track": track,
             "Track Score": track_score,
             "Fit Score": fit_score,
             
