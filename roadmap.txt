@@ -1,0 +1,116 @@
+Job Posting
+     │
+     ▼
+┌───────────────────────────────┐
+│ 1. JOB INTAKE                │
+│                               │
+│ • Manual job-description file │
+│ • Paste manually              │
+│ • URL import                  │
+│ • HTML fallback extraction    │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ 2. JOB NORMALIZATION          │
+│                               │
+│ • Company                     │
+│ • Role                        │
+│ • Location                    │
+│ • URL                         │
+│ • Description                 │
+│ • Required qualifications     │
+│ • Preferred qualifications    │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ 3. QUALIFICATION EXTRACTION   │  ◄── WE ARE HERE
+│                               │
+│ ✓ Required vs preferred       │
+│ ✓ Years of experience         │
+│ ✓ Experience ranges           │
+│ ✓ Experience domain           │
+│ ✓ Degree level                │
+│ ✓ Equivalent experience       │
+│ ✓ Degree field                │
+│ ✓ Related-field language      │
+│                               │
+│ Next: richer qualification    │
+│ matching/scoring              │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ 4. CANDIDATE MATCH ENGINE     │
+│                               │
+│ ✓ Skills                      │
+│ ✓ Experience years            │
+│ ✓ Degree hierarchy            │
+│ ✓ Degree equivalent exp.      │
+│ ✓ Degree-field matching       │
+│ ○ Related-field partial score │
+│ ○ More nuanced skills         │
+│ ○ Hard requirement detection  │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ 5. JOB SCORING                │
+│                               │
+│ ✓ Qualification match         │
+│ ✓ Experience-gap severity     │
+│ ✓ Critical requirements       │
+│ ✓ APPLY / REVIEW / SKIP       │
+│ ✓ HIGH / MEDIUM / LOW         │
+│ ○ Better weighted scoring     │
+│ ○ Confidence/explanation      │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ 6. RESUME SELECTION           │
+│                               │
+│ ✓ choose_resume() foundation  │
+│ ○ Firmware resume             │
+│ ○ SWE resume                  │
+│ ○ Embedded/flight SW resume   │
+│ ○ Score resume vs posting     │
+│ ○ Automatic best-resume pick  │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ 7. JOB TRACKER                │
+│                               │
+│ ✓ jobs.csv                    │
+│ ✓ Duplicate detection         │
+│ ✓ Save processed jobs         │
+│ ○ Application status          │
+│ ○ Applied date                │
+│ ○ Follow-up                   │
+│ ○ Interview stages            │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ 8. APPLICATION ASSISTANCE     │
+│                               │
+│ ○ Tailored resume             │
+│ ○ Cover letter                │
+│ ○ Screening questions         │
+│ ○ Application packet          │
+│ ○ Application queue           │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ 9. SEMI-AUTOMATED APPLY       │
+│                               │
+│ ○ Find jobs                   │
+│ ○ Import postings             │
+│ ○ Rank opportunities          │
+│ ○ Prepare applications        │
+│ ○ User approval               │
+│ ○ Submit / record result      │
+└───────────────────────────────┘

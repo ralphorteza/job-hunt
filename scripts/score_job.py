@@ -1537,41 +1537,25 @@ def normalize_degree_field(field):
     if not field:
         return None
     
-    return " ".join(
-        field.lower().strip().split()
-    )
-
-def normalize_degree_field(field):
-    if not field:
-        return None
-    
     field = field.lower().strip()
     
     aliases = {
         "cs": "computer science",
+        "comp sci": "computer science",
         "computer sciences": "computer science",
+        
+        "se": "software engineering",
+        "software eng": "software engineering",
         
         "ce": "computer engineering",
         "computer systems engineering": "computer engineering",
+        "comp eng": "computer engineering",
         
         "ee": "electrical engineering",
         "electrical and computer engineering": "electrical engineering",
-        
-        "se": "software engineering",
-        
-        "cs": "computer science",
-        "comp sci": "computer science",
-
-        "ce": "computer engineering",
-        "comp eng": "computer engineering",
-
-        "ee": "electrical engineering",
         "electrical eng": "electrical engineering",
-
+        
         "ece": "electrical and computer engineering",
-
-        "se": "software engineering",
-        "software eng": "software engineering",
     }
     
     return aliases.get(field, field)
