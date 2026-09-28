@@ -1226,3 +1226,169 @@ def test_degree_field_credit(
     )
 
     assert credit == expected_credit
+    
+    
+
+def test_compare_qualifications_degree_field_exact():
+    qualifications = {
+        "required": [
+            {
+                "type": "degree",
+                "value": "bachelors",
+                "minimum": "bachelors",
+                "fields": [
+                    "computer science",
+                ],
+                "related_field_allowed": False,
+                "equivalent_experience": False,
+                "text": (
+                    "Bachelor's degree in "
+                    "Computer Science"
+                ),
+            },
+        ],
+        "preferred": [],
+    }
+
+    profile = {
+        "education": {
+            "degree_level": "bachelors",
+            "field": "computer science",
+        },
+        "experience": {
+            "software_years": 2,
+            "embedded_years": 2,
+        },
+    }
+
+    result = compare_qualifications(
+        qualifications,
+        profile,
+    )
+
+    assert len(result["required_matched"]) == 1
+    assert len(result["required_missing"]) == 0
+
+
+def test_compare_qualifications_degree_field_multiple():
+    qualifications = {
+        "required": [
+            {
+                "type": "degree",
+                "value": "bachelors",
+                "minimum": "bachelors",
+                "fields": [
+                    "computer science",
+                    "computer engineering",
+                ],
+                "related_field_allowed": False,
+                "equivalent_experience": False,
+                "text": (
+                    "Bachelor's degree in Computer "
+                    "Science or Computer Engineering"
+                ),
+            },
+        ],
+        "preferred": [],
+    }
+
+    profile = {
+        "education": {
+            "degree_level": "bachelors",
+            "field": "computer science",
+        },
+        "experience": {
+            "software_years": 2,
+            "embedded_years": 2,
+        },
+    }
+
+    result = compare_qualifications(
+        qualifications,
+        profile,
+    )
+
+    assert len(result["required_matched"]) == 1
+    assert len(result["required_missing"]) == 0
+
+
+def test_compare_qualifications_degree_field_related():
+    qualifications = {
+        "required": [
+            {
+                "type": "degree",
+                "value": "bachelors",
+                "minimum": "bachelors",
+                "fields": [
+                    "computer engineering",
+                ],
+                "related_field_allowed": True,
+                "equivalent_experience": False,
+                "text": (
+                    "Bachelor's degree in Computer "
+                    "Engineering or related field"
+                ),
+            },
+        ],
+        "preferred": [],
+    }
+
+    profile = {
+        "education": {
+            "degree_level": "bachelors",
+            "field": "computer science",
+        },
+        "experience": {
+            "software_years": 2,
+            "embedded_years": 2,
+        },
+    }
+
+    result = compare_qualifications(
+        qualifications,
+        profile,
+    )
+
+    assert len(result["required_matched"]) == 1
+    assert len(result["required_missing"]) == 0
+
+
+def test_compare_qualifications_degree_field_wrong():
+    qualifications = {
+        "required": [
+            {
+                "type": "degree",
+                "value": "bachelors",
+                "minimum": "bachelors",
+                "fields": [
+                    "electrical engineering",
+                ],
+                "related_field_allowed": False,
+                "equivalent_experience": False,
+                "text": (
+                    "Bachelor's degree in "
+                    "Electrical Engineering"
+                ),
+            },
+        ],
+        "preferred": [],
+    }
+
+    profile = {
+        "education": {
+            "degree_level": "bachelors",
+            "field": "computer science",
+        },
+        "experience": {
+            "software_years": 2,
+            "embedded_years": 2,
+        },
+    }
+
+    result = compare_qualifications(
+        qualifications,
+        profile,
+    )
+
+    assert len(result["required_matched"]) == 0
+    assert len(result["required_missing"]) == 1

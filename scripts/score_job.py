@@ -845,75 +845,103 @@ def calculate_degree_qualification_credit(
         "minimum",
         qualification.get("value"),
     )
-    
-    candidate_degree = profile.get(
-        "education", {}
-    ).get("degree_level")
-    
-    if required_degree is None:
-        return 0.0
-    
-    if candidate_degree is None:
-        return 0.0
 
-    required_level = DEGREE_LEVELS.get(
-        required_degree,
-        0,
+    candidate_degree = profile.get(
+        "education",
+        {},
+    ).get(
+        "degree_level"
     )
-    
-    candidate_level = DEGREE_LEVELS.get(
-        candidate_degree,
-        0,
-    )
-    
-    if candidate_level >= required_level:
-        return 1.0
-    
+
+    # First check the actual degree.
+    if (
+        required_degree is not None
+        and candidate_degree is not None
+    ):
+        required_level = DEGREE_LEVELS.get(
+            required_degree,
+            0,
+        )
+
+        candidate_level = DEGREE_LEVELS.get(
+            candidate_degree,
+            0,
+        )
+
+        if candidate_level >= required_level:
+            return 1.0
+
+    # No sufficient degree. Check whether the
+    # posting explicitly allows equivalent experience.
+    if qualification.get(
+        "equivalent_experience",
+        False,
+    ):
+        software_years = profile.get(
+            "experience",
+            {},
+        ).get(
+            "software_years",
+            0,
+        )
+
+        # Current policy established by our tests:
+        # 4+ years satisfies a bachelor's-or-equivalent
+        # requirement.
+        if (
+            required_degree == "bachelors"
+            and software_years >= 4
+        ):
+            return 1.0
+
     return 0.0
     
-    
-
 def calculate_experience_qualification_credit(
     qualification,
     profile,
 ):
-    domain = qualification.get("domain", "software")
-    
+    domain = qualification.get(
+        "domain",
+        "software",
+    )
+
     if domain == "embedded":
         candidate_years = profile.get(
-            "experience", {}
-        ).get("embedded_years")
+            "experience",
+            {},
+        ).get(
+            "embedded_years",
+            0,
+        )
     else:
         candidate_years = profile.get(
-            "experience", {}
-        ).get("software_years")
-        
-    if candidate_years is None:
-        return 0.0
-    
+            "experience",
+            {},
+        ).get(
+            "software_years",
+            0,
+        )
+
     required_years = qualification.get(
         "minimum",
-        qualification.get("value"),
+        qualification.get(
+            "value",
+            0,
+        ),
     )
-    
-    if required_years is None:
-        return 0.0
-    
-    gap = max(
-        required_years - candidate_years, 
-        0,
-    )
-    
-    severity = classify_experience_gap(gap)
-    
-    credits = {
-        "none": 1.00,
-        "small": 0.75,
-        "moderate": 0.40,
-        "large": 0.00,
-        "unknown": 0.00,
-    }
-    return credits[severity]
+
+    if candidate_years >= required_years:
+        return 1.0
+
+    gap = required_years - candidate_years
+
+    if gap == 1:
+        return 0.75
+
+    if candidate_years >= 2:
+        return 0.4
+
+    return 0.0
     
 
 def classify_experience_gap(experience_gap):
@@ -976,130 +1004,148 @@ def calculate_experience_gap(
 
     return max(experience_gaps)
 
-def calculate_degree_qualification_credit(
-    qualification,
+def compare_qualifications(
+    qualifications,
     profile,
 ):
-    degree_levels = {
-        "high_school": 1,
-        "associates": 2,
-        "bachelors": 3,
-        "masters": 4,
-        "phd": 5,
-    }
-
-    required_degree = qualification.get(
-        "minimum",
-        qualification.get("value"),
-    )
-
-    candidate_degree = profile.get(
-        "education", {}
-    ).get("degree_level")
-
-    candidate_level = degree_levels.get(
-        candidate_degree,
-        0,
-    )
-
-    required_level = degree_levels.get(
-        required_degree,
-        0,
-    )
-
-    if candidate_level >= required_level:
-        return 1.0
-
-    if not qualification.get(
-        "equivalent_experience",
-        False,
-    ):
-        return 0.0
-
-    equivalent_years = {
-        "bachelors": 4,
-        "masters": 6,
-    }.get(required_degree)
-
-    if equivalent_years is None:
-        return 0.0
-
-    candidate_years = profile.get(
-        "experience", {}
-    ).get(
-        "software_years",
-        0,
-    )
-
-    if candidate_years >= equivalent_years:
-        return 1.0
-
-    return 0.0
-
-def compare_qualifications(qualifications, profile):
-    results = {
+    result = {
         "required_matched": [],
         "required_missing": [],
         "preferred_matched": [],
         "preferred_missing": [],
+        "required_credit": 0.0,
+        "preferred_credit": 0.0,
     }
 
-    for section in ("required", "preferred"):
-        for qualification in qualifications[section]:
-            qualification_type = qualification["type"]
-            required_value = qualification.get(
-                "minimum",
-                qualification["value"]
+    profile_experience = profile.get(
+        "experience",
+        {},
+    )
+
+    profile_education = profile.get(
+        "education",
+        {},
+    )
+
+    profile_degree = profile_education.get(
+        "degree_level"
+    )
+
+    profile_field = profile_education.get(
+        "field"
+    )
+
+    for category in (
+        "required",
+        "preferred",
+    ):
+        matched_key = f"{category}_matched"
+        missing_key = f"{category}_missing"
+        credit_key = f"{category}_credit"
+
+        for qualification in qualifications.get(
+            category,
+            [],
+        ):
+            qualification_type = qualification.get(
+                "type"
             )
 
-            matched = False
-
+            credit = 0.0
+            
             if qualification_type == "years_experience":
-                domain = qualification.get(
-                    "domain",
-                    "software"
+                credit = (
+                    calculate_experience_qualification_credit(
+                        qualification,
+                        profile,
+                    )
                 )
-                
-                candidate_years = get_candidate_experience_years(
-                    profile,
-                    domain
-                )
-                
-                matched = candidate_years >= required_value
 
             elif qualification_type == "degree":
-                credit = calculate_degree_qualification_credit(
-                    qualification,
-                    profile,
+                degree_credit = (
+                    calculate_degree_qualification_credit(
+                        qualification,
+                        profile,
+                    )
                 )
 
-                matched = credit >= 1.0
+                if degree_credit > 0.0:
+                    required_fields = qualification.get(
+                        "fields",
+                        [],
+                    )
+
+                    # If the candidate has no degree but qualifies
+                    # through equivalent experience, there is no
+                    # degree field to compare.
+                    equivalent_experience_used = (
+                        profile_degree is None
+                        and qualification.get(
+                            "equivalent_experience",
+                            False,
+                        )
+                    )
+
+                    if (
+                        not required_fields
+                        or equivalent_experience_used
+                    ):
+                        field_credit = 1.0
+                    else:
+                        field_credit = (
+                            calculate_degree_field_credit(
+                                profile_field,
+                                required_fields,
+                                qualification.get(
+                                    "related_field_allowed",
+                                    False,
+                                ),
+                            )
+                        )
+
+                    credit = min(
+                        degree_credit,
+                        field_credit,
+                    )
 
             elif qualification_type == "production_software":
-                matched = profile.get(
-                    "experience", {}
-                ).get(
-                    "production_software", False
+                credit = (
+                    1.0
+                    if profile_experience.get(
+                        "production_software",
+                        False,
+                    )
+                    else 0.0
                 )
 
             elif qualification_type == "software_best_practices":
-                matched = profile.get(
-                    "experience", {}
-                ).get(
-                    "software_best_practices", False
+                credit = (
+                    1.0
+                    if profile_experience.get(
+                        "software_best_practices",
+                        False,
+                    )
+                    else 0.0
                 )
 
-            result_key = (
-                f"{section}_matched"
-                if matched
-                else f"{section}_missing"
-            )
+            else:
+                # Preserve the existing behavior for
+                # qualification types that do not require
+                # specialized scoring.
+                credit = 0.0
 
-            results[result_key].append(
-                qualification
-            )
+            result[credit_key] += credit
 
-    return results
+            if credit > 0:
+                result[matched_key].append(
+                    qualification
+                )
+            else:
+                result[missing_key].append(
+                    qualification
+                )
+
+    return result
 
 
 def compare_profile(job_skills, profile):
