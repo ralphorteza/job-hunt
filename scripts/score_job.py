@@ -18,6 +18,27 @@ APPLY_REQUIRED_THRESHOLD = 70.0
 REVIEW_FIT_THRESHOLD = 5.0
 REVIEW_REQUIRED_THRESHOLD = 50.0
 
+DEGREE_FIELD_GROUPS = {
+    "computer science": {
+        "computer science",
+        "computer engineering",
+        "software engingeering",
+    },
+    "computer engineering": {
+        "computer engineering",
+        "computer science",
+        "electrical engineering",
+    },
+    "electrical engineering": {
+        "electrical engineering",
+        "computer engineering",
+    },
+    "software engineering": {
+        "software engineering",
+        "computer science",
+    }
+}
+
 REQUIRED_HEADINGS = [
     "requirements",
     "required qualifications",
@@ -513,40 +534,44 @@ def extract_degree_requirements(text):
     ]
     
     for degree_level, pattern in degree_patterns:
-        match = re.search(
+        for match in re.finditer(
             pattern,
             text,
             re.IGNORECASE,
-        )
-        
-        if not match:
-            continue
-        
-        # Capture enough surrounding text to detect things like
-        # "or equivalent experience" and fields of study.
-        start = max(0, match.start() - 40)
-        end = min(len(text), match.end() + 120)
-        
-        context = text[start:end]
-        
-        equivalent_experience = bool(
+        ):
+            start = max(0, match.start() - 100)
+            end = min(len(text), match.end() + 200)
             
-            re.search(
-                r"\bor\s+(?:equivalent|comparable)\s+"
-                r"(?:professional\s+|work\s+)?experience\b",
-                context,
-                re.IGNORECASE,
+            context = text[start:end]
+            
+            equivalent_experience = bool(
+                re.search(
+                    r"\bor\s+(?:equivalent|comparable)"
+                    r"(?:\s+work)?\s+experience\b",
+                    context,
+                    re.IGNORECASE,
+                )
             )
-        )
-        
-        requirements.append({
-            "type": "degree",
-            "value": degree_level,
-            "minimum": degree_level,
-            "equivalent_experience": equivalent_experience,
-            "text": match.group(0),
-        })
-        
+            
+            fields = extract_degree_fields(context)
+            related_field_allowed = (
+                allows_related_degree_field(context)
+            )
+            
+            requirements.append({
+                "type": "degree",
+                "value": degree_level,
+                "minimum": degree_level,
+                "fields": fields,
+                "related_field_allowed": (
+                    related_field_allowed
+                ),
+                "equivalent_experience": (
+                    equivalent_experience
+                ),
+                "text": match.group(0),
+            })
+            
     return requirements
 
 def extract_experience_requirements(text):
@@ -1278,6 +1303,98 @@ def score_job(description):
         }
     return results
 
+def allows_related_degree_field(text):
+    return bool(
+        re.search(
+            r"\b(?:related|relevant|similar|"
+            r"closely related|equivalent)\s+field\b",
+            text,
+            re.IGNORECASE,
+        )
+    )
+
+def extract_degree_fields(text):
+    text_lower = text.lower()
+
+    field_patterns = {
+        "computer science": [
+            r"\bcomputer science\b",
+        ],
+        "computer engineering": [
+            r"\bcomputer engineering\b",
+        ],
+        "electrical engineering": [
+            r"\belectrical engineering\b",
+        ],
+        "software engineering": [
+            r"\bsoftware engineering\b",
+        ],
+    }
+
+    fields = []
+
+    for field, patterns in field_patterns.items():
+        for pattern in patterns:
+            if re.search(pattern, text_lower):
+                fields.append(field)
+                break
+
+    return fields
+
+def degree_field_matches(
+    candidate_field,
+    required_fields,
+    related_field_allowed:False,
+):
+    if not required_fields:
+        return True
+    
+    candidate_field = normalize_degree_field(candidate_field)
+    
+    if not candidate_field:
+        return False
+    
+    normalized_required_fields = {
+        normalize_degree_field(field)
+        for field in required_fields
+    }
+    
+    # Exact field match.
+    if candidate_field in normalized_required_fields:
+        return True
+    
+    # If the posting explicitly allows related fields,
+    # check our field-equivalent groups.
+    if related_field_allowed:
+        relateted_fields = DEGREE_FIELD_GROUPS.get(
+            candidate_field, {candidate_field}
+        )
+        
+        if relateted_fields & normalized_required_fields:
+            return True
+    
+    return False
+
+def normalize_degree_field(field):
+    if not field:
+        return None
+    
+    field = field.lower().strip()
+    
+    aliases = {
+        "cs": "computer science",
+        "computer sciences": "computer science",
+        
+        "ce": "computer engineering",
+        "computer systems engineering": "computer engineering",
+        
+        "ee": "electrical engineering",
+        "electrical and computer engineering": "electrical engineering",
+        
+        "se": "software engineering",
+    }
+    
+    return aliases.get(field, field)
 
 def normalize(score):
     if score >= 18:

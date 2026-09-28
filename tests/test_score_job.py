@@ -22,6 +22,8 @@ from score_job import (
     extract_degree_requirements,
     extract_qualifications,
     calculate_degree_qualification_credit,
+    extract_degree_fields,
+    allows_related_degree_field
 )
 
 @pytest.fixture
@@ -1103,4 +1105,57 @@ Experience with Linux
     assert (
         job["required_qualification_percentage"]
         == 100.0
+    )
+    
+
+@pytest.mark.parametrize(
+    "text, expected_fields, related_allowed",
+    [
+        (
+            "Bachelor's degree in Computer Science ",
+            ["computer science"],
+            False,
+        ),
+        (
+            "BS in Computer Engineering",
+            ["computer engineering"],
+            False,
+        ),
+        (
+            "B.S. in Electrical Engineering",
+            ["electrical engineering"],
+            False,
+        ),
+        (
+            "Bachelor's degree in Software Engineering",
+            ["software engineerin"],
+            False,
+        ),
+        (
+            "Bachelor's degree in Computer Science "
+            "or Computer Engineerning",
+            [
+                "electrical engineering",
+                "computer science",
+             ],
+            False,
+        ),
+        (
+            "Bachelor's degree in Electrical Engineering "
+            "or related field",
+            ["electrical engineering"],
+            True,
+        ),
+    ],
+)
+def text_extract_degree_fields(
+    text,
+    expected_fields,
+    related_allowed,
+):
+    assert extract_degree_fields(text) == expected_fields
+    
+    assert (
+        allows_related_degree_field(text)
+        == related_allowed
     )
