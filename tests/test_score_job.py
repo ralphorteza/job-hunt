@@ -25,6 +25,9 @@ from score_job import (
     extract_degree_fields,
     allows_related_degree_field,
     calculate_degree_field_credit,
+    normalize_skill,
+    compare_profile,
+    calculate_skill_credit,
 )
 
 @pytest.fixture
@@ -1462,3 +1465,121 @@ def test_degree_field_credit(
     )
 
     assert credit == expected_credit
+    
+@pytest.mark.parametrize(
+    "skill, expected",
+    [
+        ("Python", "python"),
+        ("PYTHON", "python"),
+        ("  Python  ", "python"),
+        ("FreeRTOS", "rtos"),
+        ("free rtos", "rtos"),
+        ("baremetal", "bare metal"),
+        ("bare-metal", "bare metal"),
+        ("MCU", "microcontroller"),
+        ("MCUs", "microcontroller"),
+        ("cpp", "c++"),
+        ("NodeJS", "node.js"),
+        ("node js", "node.js"),
+        ("CI CD", "ci/cd"),
+        ("field oriented control", "foc"),
+        ("brushless dc", "bldc"),
+    ],
+)
+def test_normalize_skill(skill, expected):
+    assert normalize_skill(skill) == expected
+    
+def test_compare_profile_accepts_skill_aliases():
+    job_skills = [
+        {
+            "skill": "rtos",
+            "section": "required",
+        },
+        {
+            "skill": "bare metal",
+            "section": "required",
+        },
+        {
+            "skill": "c++",
+            "section": "preferred",
+        },
+    ]
+
+    profile = {
+        "skills": [
+            "FreeRTOS",
+            "bare-metal",
+            "cpp",
+        ],
+    }
+
+    result = compare_profile(
+        job_skills,
+        profile,
+    )
+
+    assert "rtos" in result["required_matched"]
+    assert "bare metal" in result["required_matched"]
+    assert "c++" in result["preferred_matched"]
+
+    assert result["required_missing"] == []
+    assert result["preferred_missing"] == []
+    
+@pytest.mark.parametrize(
+    (
+        "required_skill",
+        "candidate_skills",
+        "expected_credit",
+    ),
+    [
+        (
+            "c++",
+            ["c++"],
+            1.0,
+        ),
+        (
+            "c++",
+            ["cpp"],
+            1.0,
+        ),
+        (
+            "microcontroller",
+            ["stm32"],
+            0.75,
+        ),
+        (
+            "motor control",
+            ["foc"],
+            0.75,
+        ),
+        (
+            "motor control",
+            ["bldc"],
+            0.75,
+        ),
+        (
+            "linux",
+            ["embedded linux"],
+            0.75,
+        ),
+        (
+            "testing",
+            ["pytest"],
+            0.75,
+        ),
+        (
+            "microcontroller",
+            ["python"],
+            0.0,
+        ),
+    ],
+)
+def test_calculate_skill_credit(
+    required_skill,
+    candidate_skills,
+    expected_credit,
+):
+    assert calculate_skill_credit(
+        required_skill,
+        candidate_skills,
+    ) == expected_credit

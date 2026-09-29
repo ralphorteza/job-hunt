@@ -74,6 +74,66 @@ SECTION_WEIGHTS = {
     "preferred": 0.5,
 }
 
+SKILL_ALIASES = {
+    # Embedded / firmware
+    "freertos": "rtos",
+    "free rtos": "rtos",
+    
+    "baremetal": "bare metal",
+    "bare-metal": "bare metal",
+    
+    "microcontrollers": "microcontroller",
+    "mcu": "microcontroller",
+    "mcus": "microcontroller",
+    
+  # Languages
+    "cpp": "c++",
+    "cplusplus": "c++",
+
+    "js": "javascript",
+    "nodejs": "node.js",
+    "node js": "node.js",
+
+    "ts": "typescript",
+
+    # Development
+    "github actions": "github actions",
+    "github-actions": "github actions",
+
+    "ci cd": "ci/cd",
+    "cicd": "ci/cd",
+
+    # Motor control
+    "field oriented control": "foc",
+    "field-oriented control": "foc",
+
+    "brushless dc": "bldc",
+
+    "permanent magnet synchronous motor": "pmsm",
+    "permanent magnet synchronous motors": "pmsm",
+    
+}
+
+RELATED_SKILLS = {
+    "microcontroller": {
+        "stm32",
+    },
+
+    "motor control": {
+        "foc",
+        "bldc",
+        "pmsm",
+    },
+
+    "linux": {
+        "embedded linux",
+    },
+
+    "testing": {
+        "pytest",
+    },
+}
+
 SKILL_PATTERNS = {
     "c": [
         r"(?<![\w+])c(?![\w+])",
@@ -729,6 +789,32 @@ def extract_job_skills(description):
             
     return job_skills
 
+def calculate_skill_credit(
+    required_skill,
+    candidate_skills,
+):
+    required_skill = normalize_skill(required_skill)
+    
+    normalized_candidate_skills = set()
+    
+    for skill in candidate_skills:
+        normalized_skill = normalize_skill(skill)
+        
+        if normalized_skill:
+            normalized_candidate_skills.add(normalized_skill)
+            
+    if required_skill in normalized_candidate_skills:
+        return 1.0
+    
+    related_skills = RELATED_SKILLS.get(
+        required_skill,
+        set(),
+    )
+    
+    if related_skills & normalized_candidate_skills:
+        return 0.75
+    
+    return 0.0
 
 def calculate_degree_field_credit(
     candidate_field,
@@ -1086,9 +1172,15 @@ def compare_qualifications(
 
     return result
 
-
 def compare_profile(job_skills, profile):
-    candidate_skills = {skill.lower() for skill in profile["skills"]}
+    # candidate_skills = {skill.lower() for skill in profile["skills"]}
+    candidate_skills = set ()
+    
+    for skill in profile["skills"]:
+        normalized_skill = normalize_skill(skill)
+        
+        if normalized_skill:
+            candidate_skills.add(normalized_skill)
     
     results = {
         "required_matched": [],
@@ -1103,6 +1195,7 @@ def compare_profile(job_skills, profile):
         skill = item["skill"]
         section = item["section"]
         
+        normalized_skill = normalize_skill(skill)
         has_skill = skill.lower() in candidate_skills
         
         if section == "required":
@@ -1410,39 +1503,18 @@ def extract_degree_fields(text):
 
     return fields
 
-# def degree_field_matches(
-#     candidate_field,
-#     required_fields,
-#     related_field_allowed:False,
-# ):
-#     if not required_fields:
-#         return True
+def normalize_skill(skill):
+    if not skill:
+        return None
     
-#     candidate_field = normalize_degree_field(candidate_field)
+    normalized = " ".join(
+        skill.lower().strip().split()
+    )
     
-#     if not candidate_field:
-#         return False
-    
-#     normalized_required_fields = {
-#         normalize_degree_field(field)
-#         for field in required_fields
-#     }
-    
-#     # Exact field match.
-#     if candidate_field in normalized_required_fields:
-#         return True
-    
-#     # If the posting explicitly allows related fields,
-#     # check our field-equivalent groups.
-#     if related_field_allowed:
-#         relateted_fields = DEGREE_FIELD_GROUPS.get(
-#             candidate_field, {candidate_field}
-#         )
-        
-#         if relateted_fields & normalized_required_fields:
-#             return True
-    
-#     return False
+    return SKILL_ALIASES.get(
+        normalized,
+        normalized,
+    )
 
 def normalize_degree_field(field):
     if not field:
