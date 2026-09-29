@@ -345,14 +345,6 @@ DEGREE_LEVELS = {
 }
 
 
-# def count_missing_core_skills(comparison, track):
-#     count = 0
-    
-#     for skill in comparison["required_missing"]:
-#         if get_skill_weight(skill, track) >= 3:
-#             count += 1
-    
-#     return count
 def count_missing_core_skills(
     comparison,
     track,
@@ -394,6 +386,121 @@ def count_missing_core_skills(
             missing_score += 1.0
             
     return missing_score
+
+def build_recommendation_explanation(
+    recommendation,
+    fit_score,
+    required_percentage,
+    required_qualification_percentage,
+    experience_gap_severity,
+    missing_core_skills,
+    skill_warning_details,
+):
+    reasons = []
+    
+    # Overall fit
+    if fit_score >= 8.0:
+        reasons.append(
+            f"Strong overall fit ({fit_score:.1f}/10)"
+        )
+    elif fit_score >= 6.0:
+        reasons.append(
+            f"Moderate overall fit ({fit_score:.1f}10)"
+        )
+    else:
+        reasons.append(
+            f"Low overall fit ({fit_score:.1f}10)"
+        )
+    
+    # Required skills
+    if required_percentage is not None:
+        if required_percentage >= 85:
+            reasons.append(
+                "Strong required-skill coverage "
+                f"({required_percentage:.0f}%)"
+            )
+        elif required_percentage >= 70:
+            reasons.append(
+                "Good required-skill coverage "
+                f"({required_percentage:.0f}%)"
+            )
+        elif required_percentage >= 50:
+            reasons.append(
+                "Partial required-skill coverage "
+                f"({required_percentage:.0f}%)"
+            )
+        else:
+            reasons.append(
+                "Low required-skill coverage "
+                f"({required_percentage:.0f}%)"
+            )
+            
+    # Qualifications
+    if required_qualification_percentage is not None:
+        if required_qualification_percentage >= 100:
+            reasons.append(
+                "All required qualifications are satisfied"
+            )
+        elif required_qualification_percentage >= 75:
+            reasons.append(
+                "Most required qualifications are satisfied"
+            )
+        elif required_qualification_percentage >= 50:
+            reasons.append(
+                "Some required qualifications are not fully satisfied"
+            )
+        else:
+            reasons.append(
+                "Several required qualifications are not satisfied"
+            )
+    
+    # Experience
+    if experience_gap_severity == "large":
+        reasons.append(
+            "Large gap in required experience"
+        )
+    elif experience_gap_severity == "moderate":
+        reasons.append(
+            "Moderate gap in required experience"
+        )
+    elif experience_gap_severity == "small":
+        reasons.append(
+            "Small gap in required experience"
+        )
+        
+    # Core skills
+    if missing_core_skills >= 2:
+        reasons.append(
+            f"{missing_core_skills:g} core required skills "
+            "are missing or only partially covered"
+        )
+    elif missing_core_skills >= 0:
+        reasons.append(
+            "A core required skills "
+            "are missing or only partially covered"
+        )
+        
+    # Preserve the detailed skill evidence.
+    for warning in skill_warning_details:
+        skill = warning.get("skill")
+        credit = warning.get("credit", 0.0)
+        
+        if credit >= 0.9:
+            reasons.append(
+                f"{skill}: strong related coverage "
+                f"({credit * 100:.0f}%)"
+            )
+        elif credit > 0.0:
+            reasons.append(
+                f"{skill}: partial coverage "
+                f"({credit * 100:.0f}%)"
+            )
+        else:
+            reasons.append(
+                f"{skill}: missing required skill"
+            )
+            
+    return reasons
 
 def build_recommendation_reasons(comparison, fit_score, required_percentage):
     reasons = []
@@ -2120,6 +2227,18 @@ def process_job(filename):
         experience_gap_severity,
     )
     
+    recommendation_reasons = (
+        build_recommendation_explanation(
+            recommendation,
+            fit_score,
+            required_percentage,
+            required_qualification_percentage,
+            experience_gap_severity,
+            missing_core_skills,
+            skill_warning_details,
+        )
+    )
+    
     priority = calculate_priority(
         recommendation,
         fit_score,
@@ -2174,11 +2293,96 @@ def process_job(filename):
         "skill_warnings": skill_warnings,
         "skill_warning_details": skill_warning_details,
         "recommendation": recommendation,
+        "recommendation_reasons": recommendation_reasons,
         "priority": priority,
         
         "description_file": str(filename),
     }
     
+# def print_application_decision(job):
+#     print("\n" + "=" * 50)
+#     print("APPLICATION DECISION")
+#     print("=" * 50)
+
+#     print(
+#         f"\nRecommendation: "
+#         f"{job['recommendation']}"
+#     )
+    
+#     print(
+#         f"Priority:          "
+#         f"{job['priority']}" 
+#     )
+    
+#     print(
+#         f"Overall Fit:       "
+#         f"{job['fit_score']:.1f}/10" 
+#     )
+    
+#     reasons = job.get(
+#         "recommendation_reasons",
+#         [],
+#     )
+    
+#     if reasons:
+#         print("\nWhy:")
+        
+#         for reason in reasons:
+#             print(f" - {reason}")
+            
+#     warnings = job.get(
+#         "skill_warnings",
+#         [],
+#     )
+    
+#     if warnings:
+#         print("\nWarnings:")
+        
+#         for warning in warnings:
+#             print(f" - {warning}")
+def print_application_decision(job):
+    print("\n" + "=" * 50)
+    print("APPLICATION DECISION")
+    print("=" * 50)
+
+    print()
+
+    print(
+        f"{'Recommendation:':<16}"
+        f"{job['recommendation']}"
+    )
+
+    print(
+        f"{'Priority:':<16}"
+        f"{job['priority']}"
+    )
+
+    print(
+        f"{'Overall Fit:':<16}"
+        f"{job['fit_score']:.1f}/10"
+    )
+
+    reasons = job.get(
+        "recommendation_reasons",
+        [],
+    )
+
+    if reasons:
+        print("\nWhy:")
+
+        for reason in reasons:
+            print(f"  - {reason}")
+
+    warnings = job.get(
+        "skill_warnings",
+        [],
+    )
+
+    if warnings:
+        print("\nWarnings:")
+
+        for warning in warnings:
+            print(f"  - {warning}")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -2333,8 +2537,9 @@ if __name__ == "__main__":
     print("APPLICATION RECOMMENDATION")
     print("=" * 50)
 
-    print(f"Recommendation: {recommendation}")
-    print(f"Priority:       {priority}")
+    # print(f"Recommendation: {recommendation}")
+    # print(f"Priority:       {priority}")
+    print_application_decision(job)
     print(f"Resume:         {resume}")
     print(f"Overall fit:    {fit_score}/10")
 

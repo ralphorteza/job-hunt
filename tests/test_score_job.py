@@ -36,6 +36,8 @@ from score_job import (
     count_missing_core_skills,
     build_skill_warning_details,
     build_skill_warnings,
+    build_recommendation_explanation,
+    print_application_decision,
 )
 
 @pytest.fixture
@@ -2426,4 +2428,95 @@ Experience with C++
     assert isinstance(
         job["skill_warning_details"],
         list,
+    )
+
+def test_recommendation_explanation_strong_match():
+    reasons = build_recommendation_explanation(
+        recommendation="APPLY",
+        fit_score=8.7,
+        required_percentage=92.0,
+        required_qualification_percentage=100.0,
+        experience_gap_severity="none",
+        missing_core_skills=0.0,
+        skill_warning_details=[],
+    )
+
+    assert "Strong overall fit (8.7/10)" in reasons
+
+    assert (
+        "Strong required-skill coverage (92%)"
+        in reasons
+    )
+
+    assert (
+        "All required qualifications are satisfied"
+        in reasons
+    )
+    
+def test_recommendation_explanation_related_skill():
+    reasons = build_recommendation_explanation(
+        recommendation="APPLY",
+        fit_score=8.2,
+        required_percentage=90.0,
+        required_qualification_percentage=100.0,
+        experience_gap_severity="none",
+        missing_core_skills=0.0,
+        skill_warning_details=[
+            {
+                "skill": "microcontroller",
+                "credit": 0.9,
+            },
+        ],
+    )
+
+    assert (
+        "microcontroller: strong related coverage (90%)"
+        in reasons
+    )
+    
+def test_recommendation_explanation_experience_gap():
+    reasons = build_recommendation_explanation(
+        recommendation="REVIEW",
+        fit_score=7.2,
+        required_percentage=80.0,
+        required_qualification_percentage=75.0,
+        experience_gap_severity="moderate",
+        missing_core_skills=0.0,
+        skill_warning_details=[],
+    )
+
+    assert (
+        "Moderate gap in required experience"
+        in reasons
+    )
+    
+def test_print_application_decision(capsys):
+    job = {
+        "recommendation": "APPLY",
+        "priority": "HIGH",
+        "fit_score": 8.7,
+        "recommendation_reasons": [
+            "Strong overall fit (8.7/10)",
+            "Strong required-skill coverage (92%)",
+        ],
+        "skill_warnings": [
+            "Strong related match for core skill: "
+            "microcontroller (90%)",
+        ],
+    }
+
+    print_application_decision(job)
+
+    output = capsys.readouterr().out
+
+    assert "APPLICATION DECISION" in output
+    assert "Recommendation: APPLY" in output
+    assert "Priority:       HIGH" in output
+    assert "Overall Fit:    8.7/10" in output
+
+    assert "Strong overall fit (8.7/10)" in output
+
+    assert (
+        "Strong related match for core skill"
+        in output
     )
