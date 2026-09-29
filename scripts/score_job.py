@@ -1173,7 +1173,6 @@ def compare_qualifications(
     return result
 
 def compare_profile(job_skills, profile):
-    # candidate_skills = {skill.lower() for skill in profile["skills"]}
     candidate_skills = set ()
     
     for skill in profile["skills"]:
@@ -1189,31 +1188,35 @@ def compare_profile(job_skills, profile):
         "preferred_missing": [],
         "general_matched": [],
         "general_missing": [],
+        "skill_credits": {},
     }
     
     for item in job_skills:
         skill = item["skill"]
         section = item["section"]
+
+        credit = calculate_skill_credit(skill, candidate_skills,)
         
-        normalized_skill = normalize_skill(skill)
-        has_skill = skill.lower() in candidate_skills
+        results["skill_credits"][skill] = credit
         
         if section == "required":
-            if has_skill:
+            if credit > 0.0:
                 results["required_matched"].append(skill)
             else:
                 results["required_missing"].append(skill)
         elif section == "preferred":
-            if has_skill:
+            if credit > 0.0:
                 results["preferred_matched"].append(skill)
             else:
                 results["preferred_missing"].append(skill)
         else:
-            if has_skill:
+            if credit > 0.0:
                 results["general_matched"].append(skill)
             else:
                 results["general_missing"].append(skill)
+                
     return results
+            
 
 
 def calculate_qualification_match(

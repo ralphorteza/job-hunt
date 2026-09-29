@@ -28,6 +28,7 @@ from score_job import (
     normalize_skill,
     compare_profile,
     calculate_skill_credit,
+    compare_profile,
 )
 
 @pytest.fixture
@@ -1583,3 +1584,123 @@ def test_calculate_skill_credit(
         required_skill,
         candidate_skills,
     ) == expected_credit
+    
+    
+def test_compare_profile_exact_skill_credit():
+    job_skills = [
+        {
+            "skill": "C++",
+            "section": "required",
+        },
+    ]
+
+    profile = {
+        "skills": [
+            "cpp",
+        ],
+    }
+
+    result = compare_profile(
+        job_skills,
+        profile,
+    )
+
+    assert result["required_matched"] == ["C++"]
+    assert result["required_missing"] == []
+    assert result["skill_credits"]["C++"] == 1.0
+    
+def test_compare_profile_related_skill_credit():
+    job_skills = [
+        {
+            "skill": "microcontroller",
+            "section": "required",
+        },
+    ]
+
+    profile = {
+        "skills": [
+            "stm32",
+        ],
+    }
+
+    result = compare_profile(
+        job_skills,
+        profile,
+    )
+
+    assert result["required_matched"] == [
+        "microcontroller"
+    ]
+
+    assert result["required_missing"] == []
+
+    assert (
+        result["skill_credits"]["microcontroller"]
+        == 0.75
+    )
+    
+def test_compare_profile_missing_skill_credit():
+    job_skills = [
+        {
+            "skill": "microcontroller",
+            "section": "required",
+        },
+    ]
+
+    profile = {
+        "skills": [
+            "javascript",
+        ],
+    }
+
+    result = compare_profile(
+        job_skills,
+        profile,
+    )
+
+    assert result["required_matched"] == []
+
+    assert result["required_missing"] == [
+        "microcontroller"
+    ]
+
+    assert (
+        result["skill_credits"]["microcontroller"]
+        == 0.0
+    )
+    
+def test_compare_profile_partial_credit_in_all_sections():
+    job_skills = [
+        {
+            "skill": "C++",
+            "section": "required",
+        },
+        {
+            "skill": "microcontroller",
+            "section": "preferred",
+        },
+        {
+            "skill": "Linux",
+            "section": "general",
+        },
+    ]
+
+    profile = {
+        "skills": [
+            "cpp",
+            "stm32",
+            "embedded linux",
+        ],
+    }
+
+    result = compare_profile(
+        job_skills,
+        profile,
+    )
+
+    assert result["skill_credits"]["C++"] == 1.0
+    assert (
+        result["skill_credits"]["microcontroller"]
+        == 0.75
+    )
+    assert result["skill_credits"]["Linux"] == 0.75
