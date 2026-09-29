@@ -116,21 +116,23 @@ SKILL_ALIASES = {
 
 RELATED_SKILLS = {
     "microcontroller": {
-        "stm32",
+        "stm32": 0.90,
+        "esp32": 0.90,
+        "nrf52": 0.90,
     },
 
     "motor control": {
-        "foc",
-        "bldc",
-        "pmsm",
+        "foc": 0.90,
+        "bldc": 0.80,
+        "pmsm": 0.80,
     },
 
     "linux": {
-        "embedded linux",
+        "embedded linux": 0.90,
     },
 
     "testing": {
-        "pytest",
+        "pytest": 0.80,
     },
 }
 
@@ -805,16 +807,26 @@ def calculate_skill_credit(
             
     if required_skill in normalized_candidate_skills:
         return 1.0
-    
+
     related_skills = RELATED_SKILLS.get(
         required_skill,
-        set(),
+        {},
     )
     
-    if related_skills & normalized_candidate_skills:
-        return 0.75
+    related_credit = 0.0
     
-    return 0.0
+    for candidate_skill in candidate_skills:
+        credit = related_skills.get(
+            candidate_skill,
+            0.0,
+        )
+        
+        related_credit = max(
+            related_credit,
+            credit,
+        )
+        
+    return related_credit
 
 def calculate_degree_field_credit(
     candidate_field,

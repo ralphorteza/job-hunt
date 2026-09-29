@@ -1531,11 +1531,7 @@ def test_compare_profile_accepts_skill_aliases():
     assert result["preferred_missing"] == []
     
 @pytest.mark.parametrize(
-    (
-        "required_skill",
-        "candidate_skills",
-        "expected_credit",
-    ),
+    "required_skill, candidate_skills, expected",
     [
         (
             "c++",
@@ -1550,27 +1546,37 @@ def test_compare_profile_accepts_skill_aliases():
         (
             "microcontroller",
             ["stm32"],
-            0.75,
+            0.90,
+        ),
+        (
+            "microcontroller",
+            ["esp32"],
+            0.90,
         ),
         (
             "motor control",
             ["foc"],
-            0.75,
+            0.90,
         ),
         (
             "motor control",
             ["bldc"],
-            0.75,
+            0.80,
+        ),
+        (
+            "motor control",
+            ["pmsm"],
+            0.80,
         ),
         (
             "linux",
             ["embedded linux"],
-            0.75,
+            0.90,
         ),
         (
             "testing",
             ["pytest"],
-            0.75,
+            0.80,
         ),
         (
             "microcontroller",
@@ -1582,12 +1588,12 @@ def test_compare_profile_accepts_skill_aliases():
 def test_calculate_skill_credit(
     required_skill,
     candidate_skills,
-    expected_credit,
+    expected,
 ):
     assert calculate_skill_credit(
         required_skill,
         candidate_skills,
-    ) == expected_credit
+    ) == expected
     
     
 def test_compare_profile_exact_skill_credit():
@@ -1640,7 +1646,7 @@ def test_compare_profile_related_skill_credit():
 
     assert (
         result["skill_credits"]["microcontroller"]
-        == 0.75
+        == 0.90
     )
     
 def test_compare_profile_missing_skill_credit():
@@ -1705,9 +1711,9 @@ def test_compare_profile_partial_credit_in_all_sections():
     assert result["skill_credits"]["C++"] == 1.0
     assert (
         result["skill_credits"]["microcontroller"]
-        == 0.75
+        == 0.90
     )
-    assert result["skill_credits"]["Linux"] == 0.75
+    assert result["skill_credits"]["Linux"] == 0.90
     
     
 def test_weighted_match_uses_exact_skill_credit():
@@ -1904,7 +1910,7 @@ def test_related_skill_reduces_weighted_match():
     )
 
     assert exact_percentage == pytest.approx(100.0)
-    assert related_percentage == pytest.approx(75.0)
+    assert related_percentage == pytest.approx(90.0)
     
 def test_process_job_required_percentage_uses_partial_skill_credit(
     tmp_path,
@@ -1957,7 +1963,7 @@ Preferred Qualifications
     job = process_job(job_file)
 
     assert job["required_percentage"] == pytest.approx(
-        75.0
+        90.0
     )
     
 def test_process_job_required_percentage_exact_skill_is_full_credit(
@@ -2045,3 +2051,34 @@ def test_calculate_skill_percentages():
     assert percentages["required"] is not None
     assert percentages["preferred"] == 75.0
     assert percentages["general"] == 0.0
+    
+def test_calculate_skill_credit_uses_strongest_related_skill():
+    credit = calculate_skill_credit(
+        "motor control",
+        [
+            "bldc",
+            "foc",
+        ],
+    )
+
+    assert credit == 0.90
+    
+def test_calculate_skill_credit_is_order_independent():
+    credit_a = calculate_skill_credit(
+        "motor control",
+        [
+            "bldc",
+            "foc",
+        ],
+    )
+
+    credit_b = calculate_skill_credit(
+        "motor control",
+        [
+            "foc",
+            "bldc",
+        ],
+    )
+
+    assert credit_a == 0.90
+    assert credit_b == 0.90
