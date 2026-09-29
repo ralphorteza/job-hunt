@@ -33,6 +33,7 @@ from score_job import (
     calculate_weighted_match,
     calculate_fit_score,
     calculate_skill_percentages,
+    count_missing_core_skills,
 )
 
 @pytest.fixture
@@ -2082,3 +2083,129 @@ def test_calculate_skill_credit_is_order_independent():
 
     assert credit_a == 0.90
     assert credit_b == 0.90
+    
+def test_core_skill_exact_match_not_missing():
+    comparison = {
+        "required_matched": ["c++"],
+        "required_missing": [],
+        "skill_credits": {
+            "c++": 1.0,
+        },
+    }
+
+    result = count_missing_core_skills(
+        comparison,
+        "embedded",
+    )
+
+    assert result == 0.0
+
+
+def test_core_skill_strong_related_match_not_missing():
+    comparison = {
+        "required_matched": ["microcontroller"],
+        "required_missing": [],
+        "skill_credits": {
+            "microcontroller": 0.9,
+        },
+    }
+
+    result = count_missing_core_skills(
+        comparison,
+        "embedded",
+    )
+
+    assert result == 0.0
+
+
+def test_core_skill_weak_partial_match_counts_half():
+    comparison = {
+        "required_matched": ["microcontroller"],
+        "required_missing": [],
+        "skill_credits": {
+            "microcontroller": 0.6,
+        },
+    }
+
+    result = count_missing_core_skills(
+        comparison,
+        "embedded",
+    )
+
+    assert result == 0.5
+
+
+def test_core_skill_missing_counts_full():
+    comparison = {
+        "required_matched": [],
+        "required_missing": ["microcontroller"],
+        "skill_credits": {
+            "microcontroller": 0.0,
+        },
+    }
+
+    result = count_missing_core_skills(
+        comparison,
+        "embedded",
+    )
+
+    assert result == 1.0
+    
+def test_core_skill_missing_score_combines_partial_and_missing():
+    comparison = {
+        "required_matched": [
+            "microcontroller",
+            "linux",
+        ],
+        "required_missing": [
+            "rtos",
+        ],
+        "skill_credits": {
+            "microcontroller": 0.6,
+            "linux": 0.9,
+            "rtos": 0.0,
+        },
+    }
+
+    result = count_missing_core_skills(
+        comparison,
+        "embedded",
+    )
+
+    assert result == 1.5
+    
+def test_strong_related_core_skill_does_not_force_review():
+    recommendation = recommend_application(
+        fit_score=8.5,
+        required_percentage=90,
+        missing_core_skills=0.0,
+        required_qualification_percentage=100,
+        critical_missing_qualifications=0,
+        experience_gap_severity="none",
+    )
+
+    assert recommendation == "APPLY"
+    
+def test_two_missing_core_skills_force_review():
+    recommendation = recommend_application(
+        fit_score=8.5,
+        required_percentage=90,
+        missing_core_skills=2.0,
+        required_qualification_percentage=100,
+        critical_missing_qualifications=0,
+        experience_gap_severity="none",
+    )
+
+    assert recommendation == "REVIEW"
+    
+def test_three_missing_core_skills_force_skip():
+    recommendation = recommend_application(
+        fit_score=9.0,
+        required_percentage=95,
+        missing_core_skills=3.0,
+        required_qualification_percentage=100,
+        critical_missing_qualifications=0,
+        experience_gap_severity="none",
+    )
+
+    assert recommendation == "SKIP"

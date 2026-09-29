@@ -345,14 +345,55 @@ DEGREE_LEVELS = {
 }
 
 
-def count_missing_core_skills(comparison, track):
-    count = 0
+# def count_missing_core_skills(comparison, track):
+#     count = 0
     
-    for skill in comparison["required_missing"]:
-        if get_skill_weight(skill, track) >= 3:
-            count += 1
+#     for skill in comparison["required_missing"]:
+#         if get_skill_weight(skill, track) >= 3:
+#             count += 1
     
-    return count
+#     return count
+def count_missing_core_skills(
+    comparison,
+    track,
+):
+    missing_score = 0.0
+    
+    skill_credits = comparison.get(
+        "skill_credits",
+        {},
+    )
+    
+    required_skills = (
+        comparison["required_matched"]
+        + comparison["required_missing"]
+    )
+    
+    for skill in required_skills:
+        weight = get_skill_weight(
+            skill,
+            track,
+        )
+        
+        if weight < 3:
+            continue
+        
+        credit = skill_credits.get(
+            skill,
+            1.0
+            if skill in comparison["required_matched"]
+            else 0.0,
+        )
+        
+        if credit >= 0.8:
+            continue
+        
+        if credit > 0.0:
+            missing_score += 0.5
+        else:
+            missing_score += 1.0
+            
+    return missing_score
 
 def build_recommendation_reasons(comparison, fit_score, required_percentage):
     reasons = []
