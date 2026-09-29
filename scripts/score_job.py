@@ -417,19 +417,127 @@ def build_recommendation_reasons(comparison, fit_score, required_percentage):
             
     return reasons
 
-def build_skill_warnings(comparison, track):
+def build_skill_warning_details(
+    comparison,
+    track,
+):
     warnings = []
-    missing_required = comparison["required_missing"]
     
-    for skill in missing_required:
-        weight = get_skill_weight(skill, track)
+    skill_credits = comparison.get(
+        "skill_credits",
+        {},
+    )
+    
+    required_skills = (
+        comparison["required_matched"]
+        + comparison["required_missing"]
+    )
+    
+    for skill in required_skills:
+        weight = get_skill_weight(
+            skill,
+            track,
+        )
         
-        if weight >= 3:
-            warnings.append(f"Missing core required skill: {skill}")
+        credit = skill_credits.get(
+            skill,
+            1.0
+            if skill in comparison["required_matched"]
+            else 0.0,
+        )
+        
+        is_core = weight >= 3
+        
+        # Exact/full coverage does not need a warning.
+        if credit >= 1.0:
+            continue
+        
+        if credit >= 0.8:
+            severity = "strong_related"
+        elif credit > 0.0:
+            severity = "partial"
         else:
-            warnings.append(f"Missing required skill: {skill}")
+            severity = "missing"
             
+        warnings.append(
+            {
+                "skill": skill,
+                "credit": credit,
+                "weight": weight,
+                "severity": severity,
+                "core": is_core,
+            }
+        )
+    
     return warnings
+
+# def build_skill_warnings(comparison, track):
+#     warnings = []
+#     missing_required = comparison["required_missing"]
+    
+#     for skill in missing_required:
+#         weight = get_skill_weight(skill, track)
+        
+#         if weight >= 3:
+#             warnings.append(f"Missing core required skill: {skill}")
+#         else:
+#             warnings.append(f"Missing required skill: {skill}")
+            
+#     return warnings
+
+def build_skill_warnings(
+    comparison,
+    track,
+):
+    warnings = []
+    
+    warning_details = build_skill_warning_details(
+        comparison,
+        track,
+    )
+    
+    for detail in warning_details:
+        skill = detail["skill"]
+        credit = detail["credit"]
+        severity = detail["severity"]
+        is_core = detail["core"]
+        
+        percentage = round (credit * 100)
+        
+        if severity == "missing":
+            if is_core:
+                warnings.append(
+                    f"Missing core required skill: {skill}"
+                )
+            else:
+                warnings.append(
+                    f"Missing required skill: {skill}"
+                )
+        elif severity == "partial":
+            if is_core:
+                warnings.append(
+                    "Partial coverage of core required "
+                    f"skill: {skill} ({percentage}%)"
+                )
+            else:
+                warnings.append(
+                    "Partial coverage of required "
+                    f"skill: {skill} ({percentage}%)"
+                )
+        elif severity == "strong_related":
+            if is_core:
+                warnings.append(
+                    "Strong related coverage of core "
+                    f"required skill: {skill} "
+                    f"({percentage}%)"
+                )
+            else:
+                warnings.append(
+                    "Strong related coverage of required "
+                    f"skill: {skill} ({percentage}%)"
+                )
+    return warnings
+
 
 def count_critical_missing_qualifications(
     qualification_comparison,
@@ -1993,6 +2101,16 @@ def process_job(filename):
 
     missing_core_skills = count_missing_core_skills(comparison, resume)
     
+    skill_warning_details = build_skill_warning_details(
+        comparison,
+        resume,
+    )
+    
+    skill_warnings = build_skill_warnings(
+        comparison,
+        resume,
+    )
+    
     recommendation = recommend_application(
         fit_score,
         required_percentage,
@@ -2053,6 +2171,8 @@ def process_job(filename):
         "experience_gap": experience_gap,
         "experience_gap_severity": experience_gap_severity,
         "missing_core_skills": missing_core_skills,
+        "skill_warnings": skill_warnings,
+        "skill_warning_details": skill_warning_details,
         "recommendation": recommendation,
         "priority": priority,
         

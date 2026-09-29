@@ -34,6 +34,8 @@ from score_job import (
     calculate_fit_score,
     calculate_skill_percentages,
     count_missing_core_skills,
+    build_skill_warning_details,
+    build_skill_warnings,
 )
 
 @pytest.fixture
@@ -2209,3 +2211,219 @@ def test_three_missing_core_skills_force_skip():
     )
 
     assert recommendation == "SKIP"
+    
+def test_skill_warning_details_ignores_exact_match():
+    comparison = {
+        "required_matched": [
+            "c++",
+        ],
+        "required_missing": [],
+        "skill_credits": {
+            "c++": 1.0,
+        },
+    }
+
+    warnings = build_skill_warning_details(
+        comparison,
+        "embedded",
+    )
+
+    assert warnings == []
+
+
+def test_skill_warning_details_strong_related():
+    comparison = {
+        "required_matched": [
+            "microcontroller",
+        ],
+        "required_missing": [],
+        "skill_credits": {
+            "microcontroller": 0.9,
+        },
+    }
+
+    warnings = build_skill_warning_details(
+        comparison,
+        "embedded",
+    )
+
+    assert len(warnings) == 1
+
+    warning = warnings[0]
+
+    assert warning["skill"] == "microcontroller"
+    assert warning["credit"] == 0.9
+    assert warning["severity"] == "strong_related"
+    assert warning["core"] is True
+
+
+def test_skill_warning_details_partial():
+    comparison = {
+        "required_matched": [
+            "microcontroller",
+        ],
+        "required_missing": [],
+        "skill_credits": {
+            "microcontroller": 0.6,
+        },
+    }
+
+    warnings = build_skill_warning_details(
+        comparison,
+        "embedded",
+    )
+
+    assert len(warnings) == 1
+
+    warning = warnings[0]
+
+    assert warning["credit"] == 0.6
+    assert warning["severity"] == "partial"
+    assert warning["core"] is True
+
+
+def test_skill_warning_details_missing():
+    comparison = {
+        "required_matched": [],
+        "required_missing": [
+            "microcontroller",
+        ],
+        "skill_credits": {
+            "microcontroller": 0.0,
+        },
+    }
+
+    warnings = build_skill_warning_details(
+        comparison,
+        "embedded",
+    )
+
+    assert len(warnings) == 1
+
+    warning = warnings[0]
+
+    assert warning["credit"] == 0.0
+    assert warning["severity"] == "missing"
+    assert warning["core"] is True
+    
+def test_skill_warnings_missing_core_skill():
+    comparison = {
+        "required_matched": [],
+        "required_missing": [
+            "microcontroller",
+        ],
+        "skill_credits": {
+            "microcontroller": 0.0,
+        },
+    }
+
+    warnings = build_skill_warnings(
+        comparison,
+        "embedded",
+    )
+
+    assert warnings == [
+        "Missing core required skill: microcontroller"
+    ]
+
+
+def test_skill_warnings_partial_core_skill():
+    comparison = {
+        "required_matched": [
+            "microcontroller",
+        ],
+        "required_missing": [],
+        "skill_credits": {
+            "microcontroller": 0.6,
+        },
+    }
+
+    warnings = build_skill_warnings(
+        comparison,
+        "embedded",
+    )
+
+    assert warnings == [
+        (
+            "Partial coverage of core required "
+            "skill: microcontroller (60%)"
+        )
+    ]
+
+
+def test_skill_warnings_strong_related_core_skill():
+    comparison = {
+        "required_matched": [
+            "microcontroller",
+        ],
+        "required_missing": [],
+        "skill_credits": {
+            "microcontroller": 0.9,
+        },
+    }
+
+    warnings = build_skill_warnings(
+        comparison,
+        "embedded",
+    )
+
+    assert warnings == [
+        (
+            "Strong related coverage of core "
+            "required skill: microcontroller (90%)"
+        )
+    ]
+
+def test_process_job_includes_skill_warnings(
+    tmp_path,
+    monkeypatch,
+):
+    job_file = tmp_path / "skill_warning_job.txt"
+
+    job_file.write_text(
+        """
+Company: Test Corp
+Role: Embedded Software Engineer
+URL: https://example.com/job
+Location: San Jose, CA
+
+Description:
+Required Qualifications
+
+Experience with microcontrollers
+Experience with C++
+""",
+        encoding="utf-8",
+    )
+
+    profile = {
+        "skills": [
+            "stm32",
+            "c++",
+        ],
+        "education": {},
+        "experience": {
+            "software_years": 2,
+            "embedded_years": 2,
+        },
+    }
+
+    monkeypatch.setattr(
+        "score_job.load_profile",
+        lambda filename: profile,
+    )
+
+    job = process_job(job_file)
+
+    assert "skill_warnings" in job
+    assert "skill_warning_details" in job
+
+    assert isinstance(
+        job["skill_warnings"],
+        list,
+    )
+
+    assert isinstance(
+        job["skill_warning_details"],
+        list,
+    )
