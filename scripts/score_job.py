@@ -1262,39 +1262,101 @@ def calculate_qualification_match(
     
     
 
-def calculate_weighted_match(matched, missing, track):
-    matched_weight = sum(
-        get_skill_weight(skill,track)
-        for skill in matched
-    )
-    missing_weight = sum(
-        get_skill_weight(skill,track)
-        for skill in missing
-    )
+def calculate_weighted_match(
+    matched,
+    missing,
+    track,
+    skill_credits=None,
+):
+    if skill_credits is None:
+        skill_credits = {}
+        
+    all_skills = matched + missing
     
-    total_weight = matched_weight + missing_weight
+    if not all_skills:
+        return None
+    
+    earned_weight = 0.0
+    total_weight = 0.0
+    
+    for skill in all_skills:
+        weight = get_skill_weight(skill, track,)
+        
+        total_weight += weight
+        
+        if skill in skill_credits:
+            credit = skill_credits[skill]
+        elif skill in matched:
+            # Preserve the old behavior for callers that
+            # do noy provide skill_credits.
+            credit = 1.0
+        else:
+            credit = 0.0
+            
+        earned_weight += weight * credit
     
     if total_weight == 0:
         return None
+
+    return (
+        earned_weight /total_weight * 100
+    )
+            
+def calculate_skill_percentages(
+    comparison,
+    track,
+):
+  
+    skill_credits = comparison.get(
+        "skill_credits",
+        {},
+    )
     
-    return (matched_weight / total_weight) * 100
+    return {
+        "required": calculate_weighted_match(
+            comparison["required_matched"],
+            comparison["required_missing"],
+            track,
+            skill_credits,
+        ),
+        "preferred": calculate_weighted_match(
+            comparison["preferred_matched"],
+            comparison["preferred_missing"],
+            track,
+            skill_credits,
+        ),
+        "general": calculate_weighted_match(
+            comparison["general_matched"],
+            comparison["general_missing"],
+            track,
+            skill_credits,
+        ),
+    }
 
 
 def calculate_fit_score(comparison, track):
+    skill_credits = comparison.get(
+        "skill_credits",
+        {},
+    )
+    
     required_percentage = calculate_weighted_match(
         comparison["required_matched"],
         comparison["required_missing"],
-        track
+        track,
+        skill_credits,
     )
     preferred_percentage = calculate_weighted_match(
         comparison["preferred_matched"],
         comparison["preferred_missing"],
-        track
+        track,
+        skill_credits
     )
     general_percentage = calculate_weighted_match(
         comparison["general_matched"],
         comparison["general_missing"],
-        track
+        track,
+        skill_credits,
     )
     
     weighted_total = 0
@@ -1830,20 +1892,28 @@ def process_job(filename):
     job_skills = extract_job_skills(description)
     comparison = compare_profile(job_skills, profile)
     
+    skill_credits = comparison.get(
+        "skill_credits",
+        {},
+    )
+    
     required_percentage = calculate_weighted_match(
         comparison["required_matched"],
         comparison["required_missing"],
-        resume
+        resume,
+        skill_credits,
     )
     preferred_percentage = calculate_weighted_match(
         comparison["preferred_matched"],
         comparison["preferred_missing"],
-        resume
+        resume,
+        skill_credits,
     )
     general_percentage = calculate_weighted_match(
         comparison["general_matched"],
         comparison["general_missing"],
-        resume
+        resume,
+        skill_credits,
     )
     
     qualifications = extract_qualifications(description)
@@ -1892,7 +1962,7 @@ def process_job(filename):
         preferred_qualification_percentage,
     )
     
-    # fit_score = calculate_fit_score(comparison, resume)
+
     missing_core_skills = count_missing_core_skills(comparison, resume)
     
     recommendation = recommend_application(

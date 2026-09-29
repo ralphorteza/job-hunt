@@ -29,6 +29,10 @@ from score_job import (
     compare_profile,
     calculate_skill_credit,
     compare_profile,
+    get_skill_weight,
+    calculate_weighted_match,
+    calculate_fit_score,
+    calculate_skill_percentages,
 )
 
 @pytest.fixture
@@ -1704,3 +1708,340 @@ def test_compare_profile_partial_credit_in_all_sections():
         == 0.75
     )
     assert result["skill_credits"]["Linux"] == 0.75
+    
+    
+def test_weighted_match_uses_exact_skill_credit():
+    matched = ["c++"]
+    missing = []
+
+    skill_credits = {
+        "c++": 1.0,
+    }
+
+    result = calculate_weighted_match(
+        matched,
+        missing,
+        "embedded",
+        skill_credits,
+    )
+
+    assert result == pytest.approx(100.0)
+
+
+def test_weighted_match_uses_partial_skill_credit():
+    matched = ["microcontroller"]
+    missing = []
+
+    skill_credits = {
+        "microcontroller": 0.75,
+    }
+
+    result = calculate_weighted_match(
+        matched,
+        missing,
+        "embedded",
+        skill_credits,
+    )
+
+    assert result == pytest.approx(75.0)
+
+
+def test_weighted_match_uses_zero_skill_credit():
+    matched = []
+    missing = ["rtos"]
+
+    skill_credits = {
+        "rtos": 0.0,
+    }
+
+    result = calculate_weighted_match(
+        matched,
+        missing,
+        "embedded",
+        skill_credits,
+    )
+
+    assert result == pytest.approx(0.0)
+
+
+def test_weighted_match_combines_skill_credits():
+    matched = [
+        "c++",
+        "microcontroller",
+    ]
+
+    missing = [
+        "rtos",
+    ]
+
+    skill_credits = {
+        "c++": 1.0,
+        "microcontroller": 0.75,
+        "rtos": 0.0,
+    }
+
+    result = calculate_weighted_match(
+        matched,
+        missing,
+        "embedded",
+        skill_credits,
+    )
+
+    cplusplus_weight = get_skill_weight(
+        "c++",
+        "embedded",
+    )
+
+    microcontroller_weight = get_skill_weight(
+        "microcontroller",
+        "embedded",
+    )
+
+    rtos_weight = get_skill_weight(
+        "rtos",
+        "embedded",
+    )
+
+    earned = (
+        cplusplus_weight * 1.0
+        + microcontroller_weight * 0.75
+        + rtos_weight * 0.0
+    )
+
+    possible = (
+        cplusplus_weight
+        + microcontroller_weight
+        + rtos_weight
+    )
+
+    expected = earned / possible * 100
+
+    assert result == pytest.approx(expected)
+    
+def test_fit_score_uses_skill_credits():
+    exact_comparison = {
+        "required_matched": [
+            "microcontroller",
+        ],
+        "required_missing": [],
+        "preferred_matched": [],
+        "preferred_missing": [],
+        "general_matched": [],
+        "general_missing": [],
+        "skill_credits": {
+            "microcontroller": 1.0,
+        },
+    }
+
+    related_comparison = {
+        "required_matched": [
+            "microcontroller",
+        ],
+        "required_missing": [],
+        "preferred_matched": [],
+        "preferred_missing": [],
+        "general_matched": [],
+        "general_missing": [],
+        "skill_credits": {
+            "microcontroller": 0.75,
+        },
+    }
+
+    exact_score = calculate_fit_score(
+        exact_comparison,
+        "embedded",
+    )
+
+    related_score = calculate_fit_score(
+        related_comparison,
+        "embedded",
+    )
+
+    assert related_score < exact_score
+    
+def test_related_skill_reduces_weighted_match():
+    job_skills = [
+        {
+            "skill": "microcontroller",
+            "section": "required",
+        },
+    ]
+
+    exact_profile = {
+        "skills": [
+            "microcontroller",
+        ],
+    }
+
+    related_profile = {
+        "skills": [
+            "stm32",
+        ],
+    }
+
+    exact_comparison = compare_profile(
+        job_skills,
+        exact_profile,
+    )
+
+    related_comparison = compare_profile(
+        job_skills,
+        related_profile,
+    )
+
+    exact_percentage = calculate_weighted_match(
+        exact_comparison["required_matched"],
+        exact_comparison["required_missing"],
+        "embedded",
+        exact_comparison["skill_credits"],
+    )
+
+    related_percentage = calculate_weighted_match(
+        related_comparison["required_matched"],
+        related_comparison["required_missing"],
+        "embedded",
+        related_comparison["skill_credits"],
+    )
+
+    assert exact_percentage == pytest.approx(100.0)
+    assert related_percentage == pytest.approx(75.0)
+    
+def test_process_job_required_percentage_uses_partial_skill_credit(
+    tmp_path,
+    monkeypatch,
+):
+    job_file = tmp_path / "partial_skill_job.txt"
+
+    job_file.write_text(
+        """
+Company: Partial Skill Corp
+Role: Embedded Software Engineer
+URL: https://example.com/jobs/partial-skill
+Location: San Jose, CA
+
+Description:
+Job Description
+
+Develop embedded software for microcontrollers.
+
+Required Qualifications
+
+Experience with microcontrollers
+
+Preferred Qualifications
+        """.strip(),
+        encoding="utf-8",
+    )
+
+    profile = {
+        "skills": [
+            "stm32",
+        ],
+        "education": {
+            "degree_level": "bachelors",
+            "field": "computer science",
+        },
+        "experience": {
+            "software_years": 2,
+            "embedded_years": 2,
+            "production_software": True,
+            "software_best_practices": True,
+        },
+    }
+
+    monkeypatch.setattr(
+        "score_job.load_profile",
+        lambda filename: profile,
+    )
+
+    job = process_job(job_file)
+
+    assert job["required_percentage"] == pytest.approx(
+        75.0
+    )
+    
+def test_process_job_required_percentage_exact_skill_is_full_credit(
+    tmp_path,
+    monkeypatch,
+):
+    job_file = tmp_path / "exact_skill_job.txt"
+
+    job_file.write_text(
+        """
+Company: Exact Skill Corp
+Role: Embedded Software Engineer
+URL: https://example.com/jobs/exact-skill
+Location: San Jose, CA
+
+Description:
+Job Description
+
+Develop embedded software for microcontrollers.
+
+Required Qualifications
+
+Experience with microcontrollers
+
+Preferred Qualifications
+        """.strip(),
+        encoding="utf-8",
+    )
+
+    profile = {
+        "skills": [
+            "microcontroller",
+        ],
+        "education": {
+            "degree_level": "bachelors",
+            "field": "computer science",
+        },
+        "experience": {
+            "software_years": 2,
+            "embedded_years": 2,
+            "production_software": True,
+            "software_best_practices": True,
+        },
+    }
+
+    monkeypatch.setattr(
+        "score_job.load_profile",
+        lambda filename: profile,
+    )
+
+    job = process_job(job_file)
+
+    assert job["required_percentage"] == pytest.approx(
+        100.0
+    )
+    
+def test_calculate_skill_percentages():
+    comparison = {
+        "required_matched": [
+            "microcontroller",
+            "c++",
+        ],
+        "required_missing": [],
+        "preferred_matched": [
+            "linux",
+        ],
+        "preferred_missing": [],
+        "general_matched": [],
+        "general_missing": [
+            "testing",
+        ],
+        "skill_credits": {
+            "microcontroller": 0.75,
+            "c++": 1.0,
+            "linux": 0.75,
+            "testing": 0.0,
+        },
+    }
+
+    percentages = calculate_skill_percentages(
+        comparison,
+        "embedded",
+    )
+
+    assert percentages["required"] is not None
+    assert percentages["preferred"] == 75.0
+    assert percentages["general"] == 0.0
