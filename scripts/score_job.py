@@ -1335,29 +1335,14 @@ def calculate_skill_percentages(
 
 
 def calculate_fit_score(comparison, track):
-    skill_credits = comparison.get(
-        "skill_credits",
-        {},
+    percentages = calculate_skill_percentages(
+        comparison,
+        track,
     )
     
-    required_percentage = calculate_weighted_match(
-        comparison["required_matched"],
-        comparison["required_missing"],
-        track,
-        skill_credits,
-    )
-    preferred_percentage = calculate_weighted_match(
-        comparison["preferred_matched"],
-        comparison["preferred_missing"],
-        track,
-        skill_credits
-    )
-    general_percentage = calculate_weighted_match(
-        comparison["general_matched"],
-        comparison["general_missing"],
-        track,
-        skill_credits,
-    )
+    required_percentage = percentages["required"]
+    preferred_percentage = percentages["preferred"]
+    general_percentage = percentages["general"]
     
     weighted_total = 0
     total_weight = 0
@@ -1897,24 +1882,14 @@ def process_job(filename):
         {},
     )
     
-    required_percentage = calculate_weighted_match(
-        comparison["required_matched"],
-        comparison["required_missing"],
+    skill_percentages = calculate_skill_percentages(
+        comparison,
         resume,
-        skill_credits,
     )
-    preferred_percentage = calculate_weighted_match(
-        comparison["preferred_matched"],
-        comparison["preferred_missing"],
-        resume,
-        skill_credits,
-    )
-    general_percentage = calculate_weighted_match(
-        comparison["general_matched"],
-        comparison["general_missing"],
-        resume,
-        skill_credits,
-    )
+    
+    required_percentage = skill_percentages["required"]
+    preferred_percentage = skill_percentages["preferred"]
+    general_percentage = skill_percentages["general"]
     
     qualifications = extract_qualifications(description)
 
