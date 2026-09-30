@@ -6,6 +6,7 @@ from score_job import(
     process_job,
     job_exists,
     save_processed_job,
+    print_application_decision,
 )
 
 def make_filename(company, role):
@@ -215,7 +216,8 @@ def main():
     except (ValueError, OSError) as error:
         print(f"Error scoring job: {error}")
         return
-        
+
+    TODO format thing
     print()
     print("=" * 50)
     print("JOB ANALYSIS")
@@ -224,20 +226,27 @@ def main():
     print(f"Track:          {job['track']}")
     print(f"Track score:    {job['track_score']}/10")
     print(f"Fit score:      {job['fit_score']}/10")
-    print(f"Recommendation: {job['recommendation']}")
-    print(f"Priority:       {job['priority']}")
-    
+
     required = job["required_percentage"]
     preferred = job["preferred_percentage"]
-    
+    general = job["general_percentage"]
+
     if required is not None:
         print(
-            f"Required match: {required:.0f}%"
+            f"Required skills:     "
+            f"{required:.0f}%"
         )
-        
+
     if preferred is not None:
         print(
-            f"Preferred match: {preferred:.0f}%"
+            f"Preferred skills:    "
+            f"{preferred:.0f}%"
+        )
+
+    if general is not None:
+        print(
+            f"General skills:      "
+            f"{general:.0f}%"
         )
 
     required_qualification = job[
@@ -250,15 +259,60 @@ def main():
 
     if required_qualification is not None:
         print(
-            f"Required qualifications: "
+            f"Required quals:      "
             f"{required_qualification:.0f}%"
         )
 
     if preferred_qualification is not None:
         print(
-            f"Preferred qualifications: "
+            f"Preferred quals:     "
             f"{preferred_qualification:.0f}%"
         )
+
+    print_application_decision(job)
+    # print()
+    # print("=" * 50)
+    # print("JOB ANALYSIS")
+    # print("=" * 50)
+
+    # print(f"Track:          {job['track']}")
+    # print(f"Track score:    {job['track_score']}/10")
+    # print(f"Fit score:      {job['fit_score']}/10")
+    # print(f"Recommendation: {job['recommendation']}")
+    # print(f"Priority:       {job['priority']}")
+    
+    # required = job["required_percentage"]
+    # preferred = job["preferred_percentage"]
+    
+    # if required is not None:
+    #     print(
+    #         f"Required match: {required:.0f}%"
+    #     )
+        
+    # if preferred is not None:
+    #     print(
+    #         f"Preferred match: {preferred:.0f}%"
+    #     )
+
+    # required_qualification = job[
+    #     "required_qualification_percentage"
+    # ]
+
+    # preferred_qualification = job[
+    #     "preferred_qualification_percentage"
+    # ]
+
+    # if required_qualification is not None:
+    #     print(
+    #         f"Required qualifications: "
+    #         f"{required_qualification:.0f}%"
+    #     )
+
+    # if preferred_qualification is not None:
+    #     print(
+    #         f"Preferred qualifications: "
+    #         f"{preferred_qualification:.0f}%"
+    #     )
         
     try:
         save_processed_job(job)
